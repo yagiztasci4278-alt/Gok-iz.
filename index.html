@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GÖK-İZ — Gök Vatan Hak İzleme ve Yörünge Analiz Sistemi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.0.0/satellite.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #020b0f;
+  --bg2: #030f15;
+  --bg3: #051620;
+  --bg4: #071d2a;
+  --panel: #041218;
+  --border: #0a3040;
+  --border2: #0d4a60;
+  --cyan: #00e5ff;
+  --cyan2: #00b8d4;
+  --cyan3: #006a7a;
+  --cyan-dim: rgba(0,229,255,0.12);
+  --cyan-glow: rgba(0,229,255,0.06);
+  --green: #00ff9d;
+  --green2: #00cc7a;
+  --green-dim: rgba(0,255,157,0.1);
+  --red: #ff3c5a;
+  --red-dim: rgba(255,60,90,0.1);
+  --amber: #ffab00;
+  --amber-dim: rgba(255,171,0,0.1);
+  --text: #b0e8f0;
+  --text2: #5a9aaa;
+  --text3: #2d5a68;
+  --mono: 'Share Tech Mono', monospace;
+  --sans: 'Rajdhani', sans-serif;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; background:var(--bg); color:var(--text); font-family:var(--sans); font-size:14px; overflow-x:hidden; }
+
+body::before {
+  content:''; position:fixed; inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);
+  pointer-events:none; z-index:9999;
+}
+body::after {
+  content:''; position:fixed; inset:0;
+  background-image:linear-gradient(rgba(0,229,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.025) 1px,transparent 1px);
+  background-size:40px 40px; pointer-events:none; z-index:0;
+}
+
+/* HEADER */
+.header {
+  position:relative; z-index:10;
+  background:linear-gradient(180deg,#051a26 0%,var(--bg) 100%);
+  border-bottom:1px solid var(--border2);
+  padding:0 20px;
+  display:flex; align-items:stretch; justify-content:space-between;
+  box-shadow:0 4px 40px rgba(0,229,255,0.08);
+}
+.header-left { display:flex; align-items:center; gap:16px; padding:12px 0; }
+.logo-hex { width:48px; height:48px; position:relative; display:flex; align-items:center; justify-content:center; }
+.logo-hex svg { width:48px; height:48px; }
+.logo-text h1 { font-family:var(--sans); font-size:20px; font-weight:700; color:var(--cyan); letter-spacing:0.15em; line-height:1; text-shadow:0 0 20px rgba(0,229,255,0.4); }
+.logo-text p { font-family:var(--mono); font-size:9px; color:var(--text2); letter-spacing:0.08em; margin-top:3px; }
+.header-center { display:flex; align-items:center; gap:32px; padding:0 32px; }
+.header-stat { display:flex; flex-direction:column; align-items:center; gap:2px; padding:12px 0; }
+.stat-label { font-family:var(--mono); font-size:8px; color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; }
+.stat-value { font-family:var(--mono); font-size:13px; color:var(--cyan); font-weight:600; letter-spacing:0.05em; }
+.stat-value.green { color:var(--green); text-shadow:0 0 8px rgba(0,255,157,0.4); }
+.stat-value.red { color:var(--red); text-shadow:0 0 8px rgba(255,60,90,0.4); }
+.header-right { display:flex; align-items:center; gap:16px; padding:12px 0; }
+.sys-status { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; color:var(--green); letter-spacing:0.08em; }
+.pulse-dot { width:7px; height:7px; background:var(--green); border-radius:50%; box-shadow:0 0 10px var(--green); animation:pulse-anim 1.5s ease-in-out infinite; }
+@keyframes pulse-anim { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.8);} }
+.utc-clock { font-family:var(--mono); font-size:18px; color:var(--cyan); letter-spacing:0.12em; text-shadow:0 0 15px rgba(0,229,255,0.35); border:1px solid var(--border2); padding:6px 14px; background:var(--cyan-glow); }
+.classify-badge { font-family:var(--mono); font-size:9px; padding:4px 10px; border:1px solid var(--cyan3); color:var(--cyan2); background:var(--cyan-glow); letter-spacing:0.12em; text-transform:uppercase; }
+
+/* NAV */
+.nav-bar { position:relative; z-index:10; background:var(--bg2); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 20px; gap:0; }
+.nav-item { font-family:var(--sans); font-size:11px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; padding:10px 18px; color:var(--text3); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; }
+.nav-item.active,.nav-item:hover { color:var(--cyan); border-bottom-color:var(--cyan); background:var(--cyan-glow); }
+.nav-sep { flex:1; }
+.nav-epoch { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.05em; }
+
+/* LAYOUT */
+.main-layout { position:relative; z-index:5; display:grid; grid-template-columns:320px 1fr 340px; gap:0; height:calc(100vh - 90px); overflow:hidden; }
+
+/* PANELS */
+.panel { border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; background:var(--panel); }
+.panel:last-child { border-right:none; }
+.panel-hdr { background:linear-gradient(90deg,var(--bg3) 0%,var(--bg4) 100%); border-bottom:1px solid var(--border2); padding:8px 14px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.panel-hdr-title { font-family:var(--mono); font-size:10px; color:var(--cyan2); letter-spacing:0.12em; text-transform:uppercase; }
+.panel-hdr-badge { font-family:var(--mono); font-size:8px; padding:2px 7px; border:1px solid var(--border2); color:var(--text2); background:var(--bg); letter-spacing:0.08em; }
+.panel-hdr-badge.live { border-color:var(--green2); color:var(--green); background:var(--green-dim); animation:badge-blink 2s ease infinite; }
+@keyframes badge-blink { 0%,100%{opacity:1}50%{opacity:0.6} }
+.panel-body { flex:1; overflow-y:auto; padding:12px; }
+.panel-body::-webkit-scrollbar { width:4px; }
+.panel-body::-webkit-scrollbar-track { background:transparent; }
+.panel-body::-webkit-scrollbar-thumb { background:var(--border2); }
+
+/* TAB VIEWS */
+.tab-view { display:none; flex:1; overflow:hidden; }
+.tab-view.active { display:flex; flex-direction:column; }
+
+/* SAT CARD */
+.sat-card { background:var(--bg2); border:1px solid var(--border); margin-bottom:12px; position:relative; overflow:hidden; }
+.sat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.sat-card.ts6a::before { background:linear-gradient(90deg,var(--cyan),transparent); }
+.sat-card.ts5b::before { background:linear-gradient(90deg,var(--green),transparent); }
+.sat-card-hdr { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-bottom:1px solid var(--border); }
+.sat-name { font-family:var(--sans); font-size:13px; font-weight:700; letter-spacing:0.08em; }
+.sat-card.ts6a .sat-name { color:var(--cyan); }
+.sat-card.ts5b .sat-name { color:var(--green); }
+.sat-norad { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.05em; }
+.sat-coords { padding:10px 12px; }
+.coord-row { display:flex; align-items:center; justify-content:space-between; padding:4px 0; border-bottom:1px solid rgba(0,229,255,0.05); }
+.coord-row:last-child { border-bottom:none; }
+.coord-key { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.08em; text-transform:uppercase; }
+.coord-val { font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:0.05em; }
+.sat-card.ts6a .coord-val { color:var(--cyan); text-shadow:0 0 8px rgba(0,229,255,0.25); }
+.sat-card.ts5b .coord-val { color:var(--green); text-shadow:0 0 8px rgba(0,255,157,0.2); }
+.coord-unit { font-size:10px; font-weight:400; opacity:0.6; }
+.sat-extra { padding:6px 12px 10px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+.mini-stat { display:flex; flex-direction:column; gap:1px; }
+.mini-label { font-family:var(--mono); font-size:8px; color:var(--text3); letter-spacing:0.06em; text-transform:uppercase; }
+.mini-val { font-family:var(--mono); font-size:11px; color:var(--text2); }
+
+.tle-block { background:var(--bg); border:1px solid var(--border); padding:8px 10px; margin-bottom:10px; }
+.tle-sat-name { font-family:var(--mono); font-size:9px; color:var(--cyan2); margin-bottom:4px; letter-spacing:0.08em; }
+.tle-line { font-family:var(--mono); font-size:8.5px; color:var(--text3); word-break:break-all; line-height:1.7; }
+.tle-line span { color:var(--text2); }
+
+.section-label { font-family:var(--mono); font-size:8px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; padding:6px 14px; background:var(--bg); border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin:8px -12px; display:flex; align-items:center; gap:6px; }
+.section-label::before { content:''; width:12px; height:1px; background:var(--cyan3); }
+
+/* SCENARIO BUTTONS */
+.scenario-area { flex-shrink:0; border-top:1px solid var(--border); padding:12px; background:var(--bg2); }
+.scenario-title { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px; }
+.btn-scenario { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text2); font-family:var(--sans); font-size:11px; font-weight:600; letter-spacing:0.08em; padding:9px 12px; cursor:pointer; text-align:left; margin-bottom:6px; display:flex; align-items:center; gap:8px; transition:all 0.15s; position:relative; overflow:hidden; text-transform:uppercase; }
+.btn-scenario::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; }
+.btn-scenario.type-a::before { background:var(--amber); }
+.btn-scenario.type-b::before { background:var(--red); }
+.btn-scenario.type-c::before { background:var(--cyan); }
+.btn-scenario:hover { background:var(--bg3); }
+.btn-scenario.type-a:hover { border-color:var(--amber); color:var(--amber); box-shadow:0 0 20px rgba(255,171,0,0.1); }
+.btn-scenario.type-b:hover { border-color:var(--red); color:var(--red); box-shadow:0 0 20px rgba(255,60,90,0.1); }
+.btn-scenario.type-c:hover { border-color:var(--cyan); color:var(--cyan); box-shadow:0 0 20px rgba(0,229,255,0.1); }
+.btn-scenario.active.type-a { background:var(--amber-dim); border-color:var(--amber); color:var(--amber); }
+.btn-scenario.active.type-b { background:var(--red-dim); border-color:var(--red); color:var(--red); }
+.btn-scenario.active.type-c { background:var(--cyan-dim); border-color:var(--cyan); color:var(--cyan); }
+.btn-code { font-family:var(--mono); font-size:10px; padding:2px 6px; border:1px solid currentColor; opacity:0.7; flex-shrink:0; }
+.btn-label { flex:1; }
+
+/* CENTER PANEL */
+.center-panel { background:var(--bg); }
+.alert-box { margin:12px; border:1px solid; padding:14px 16px; position:relative; overflow:hidden; }
+.alert-box::after { content:''; position:absolute; top:0; right:0; width:40%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.02)); pointer-events:none; }
+.alert-box.amber { border-color:rgba(255,171,0,0.4); background:var(--amber-dim); }
+.alert-box.red { border-color:rgba(255,60,90,0.4); background:var(--red-dim); }
+.alert-box.cyan { border-color:rgba(0,229,255,0.3); background:var(--cyan-dim); }
+.alert-type { font-family:var(--mono); font-size:9px; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+.alert-box.amber .alert-type { color:var(--amber); }
+.alert-box.red .alert-type { color:var(--red); }
+.alert-box.cyan .alert-type { color:var(--cyan); }
+.alert-title { font-family:var(--sans); font-size:15px; font-weight:700; letter-spacing:0.05em; margin-bottom:8px; line-height:1.3; }
+.alert-box.amber .alert-title { color:#ffd54f; }
+.alert-box.red .alert-title { color:#ff8a95; }
+.alert-box.cyan .alert-title { color:var(--cyan); }
+.alert-body { font-family:var(--mono); font-size:10px; color:var(--text2); line-height:1.8; }
+.alert-law { margin-top:10px; padding:6px 10px; background:rgba(0,0,0,0.3); border-left:2px solid; font-family:var(--mono); font-size:10px; line-height:1.7; }
+.alert-box.amber .alert-law { border-color:var(--amber); color:#ffd54f; }
+.alert-box.red .alert-law { border-color:var(--red); color:#ff8a95; }
+.alert-box.cyan .alert-law { border-color:var(--cyan); color:var(--cyan); }
+
+.canvas-wrapper { margin:0 12px 12px; border:1px solid var(--border); background:var(--bg2); position:relative; }
+.canvas-hdr { padding:6px 10px; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; display:flex; align-items:center; justify-content:space-between; }
+canvas { display:block; width:100%; }
+
+/* DATA TABLES */
+.data-tbl { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:10px; margin:0 0 10px; }
+.data-tbl th { text-align:left; padding:5px 8px; background:var(--bg); color:var(--text3); letter-spacing:0.1em; text-transform:uppercase; font-size:8px; border-bottom:1px solid var(--border); }
+.data-tbl td { padding:5px 8px; border-bottom:1px solid rgba(0,229,255,0.04); color:var(--text2); }
+.data-tbl td.hi,.data-tbl td.cyan-hi { color:var(--cyan); }
+.data-tbl td.red-hi { color:var(--red); }
+.data-tbl td.amber-hi { color:var(--amber); }
+.data-tbl td.green-hi { color:var(--green); }
+
+/* HASH LOG */
+.hash-log { display:flex; flex-direction:column; gap:8px; }
+.hash-entry { background:var(--bg2); border:1px solid var(--border); padding:8px 10px; position:relative; overflow:hidden; animation:slideIn 0.4s ease; }
+@keyframes slideIn { from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)} }
+.hash-entry::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; }
+.hash-entry.type-a::before { background:var(--amber); }
+.hash-entry.type-b::before { background:var(--red); }
+.hash-entry.type-c::before { background:var(--cyan); }
+.hash-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:5px; }
+.hash-ev-type { font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; }
+.hash-entry.type-a .hash-ev-type { color:var(--amber); }
+.hash-entry.type-b .hash-ev-type { color:var(--red); }
+.hash-entry.type-c .hash-ev-type { color:var(--cyan); }
+.hash-ts { font-family:var(--mono); font-size:8px; color:var(--text3); }
+.hash-coords { font-family:var(--mono); font-size:9px; color:var(--text2); margin-bottom:4px; line-height:1.6; }
+.hash-val { font-family:var(--mono); font-size:8px; color:var(--text3); word-break:break-all; line-height:1.5; }
+.hash-val strong { color:var(--green); }
+.hash-seal { display:flex; align-items:center; gap:4px; margin-top:4px; font-family:var(--mono); font-size:8px; color:var(--green); }
+
+.decl-btn-wrap { padding:12px; border-top:1px solid var(--border); background:var(--bg2); flex-shrink:0; }
+.btn-decl { width:100%; background:linear-gradient(90deg,var(--bg3),var(--bg4)); border:1px solid var(--cyan2); color:var(--cyan); font-family:var(--sans); font-size:12px; font-weight:700; letter-spacing:0.1em; padding:12px; cursor:pointer; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; position:relative; overflow:hidden; }
+.btn-decl::before { content:''; position:absolute; left:-100%; top:0; bottom:0; width:100%; background:linear-gradient(90deg,transparent,rgba(0,229,255,0.08),transparent); animation:shimmer 3s infinite; }
+@keyframes shimmer { 0%{left:-100%}100%{left:200%} }
+.btn-decl:hover { background:var(--cyan-dim); box-shadow:0 0 30px rgba(0,229,255,0.15); }
+
+.default-center { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:300px; gap:16px; padding:40px; }
+.globe-anim { width:100px; height:100px; border:2px solid var(--border2); border-radius:50%; position:relative; display:flex; align-items:center; justify-content:center; }
+.orbit-a { position:absolute; width:130px; height:50px; border:1px solid var(--border2); border-radius:50%; border-top-color:var(--cyan3); animation:orbit-anim 4s linear infinite; }
+.orbit-b { position:absolute; width:160px; height:60px; border:1px solid var(--border); border-radius:50%; border-bottom-color:var(--green2); animation:orbit-anim 7s linear infinite reverse; }
+.orbit-dot-a { position:absolute; width:6px; height:6px; background:var(--cyan); border-radius:50%; top:-3px; left:50%; transform:translateX(-50%); box-shadow:0 0 8px var(--cyan); }
+.orbit-dot-b { position:absolute; width:5px; height:5px; background:var(--green); border-radius:50%; bottom:-3px; left:50%; transform:translateX(-50%); box-shadow:0 0 6px var(--green); }
+@keyframes orbit-anim { from{transform:rotate(0)}to{transform:rotate(360deg)} }
+.globe-inner { font-size:30px; z-index:1; }
+.default-label { font-family:var(--mono); font-size:11px; color:var(--text3); letter-spacing:0.1em; text-align:center; line-height:1.8; }
+
+.hash-empty { font-family:var(--mono); font-size:10px; color:var(--text3); text-align:center; padding:24px; line-height:1.8; letter-spacing:0.05em; }
+
+/* ===================== TAB CONTENT STYLES ===================== */
+
+/* DIPLOMATIK DOSYALAR */
+.dipl-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.dipl-header-title { font-family:var(--mono); font-size:10px; color:var(--cyan2); letter-spacing:0.12em; text-transform:uppercase; }
+.dipl-content { flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:14px; }
+.dipl-content::-webkit-scrollbar { width:4px; }
+.dipl-content::-webkit-scrollbar-thumb { background:var(--border2); }
+
+.dipl-file-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.dipl-file-card:hover { border-color: var(--border2); }
+.dipl-file-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.dipl-file-card.priority-yüksek::before { background:linear-gradient(90deg,var(--red),transparent); }
+.dipl-file-card.priority-orta::before { background:linear-gradient(90deg,var(--amber),transparent); }
+.dipl-file-card.priority-düşük::before { background:linear-gradient(90deg,var(--cyan),transparent); }
+
+.dipl-file-hdr {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap:10px;
+}
+.dipl-file-id { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.08em; }
+.dipl-file-title { font-family:var(--sans); font-size:13px; font-weight:700; letter-spacing:0.05em; color:var(--text); flex:1; }
+.dipl-priority-badge {
+  font-family: var(--mono); font-size:8px; padding:2px 8px;
+  border:1px solid; letter-spacing:0.1em; text-transform:uppercase; white-space:nowrap;
+}
+.dipl-priority-badge.yüksek { border-color:rgba(255,60,90,0.5); color:var(--red); background:var(--red-dim); }
+.dipl-priority-badge.orta { border-color:rgba(255,171,0,0.5); color:var(--amber); background:var(--amber-dim); }
+.dipl-priority-badge.düşük { border-color:rgba(0,229,255,0.3); color:var(--cyan); background:var(--cyan-dim); }
+
+.dipl-file-meta {
+  padding: 8px 14px;
+  display: flex; gap: 20px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+}
+.dipl-meta-item { display:flex; gap:5px; font-family:var(--mono); font-size:9px; }
+.dipl-meta-k { color:var(--text3); }
+.dipl-meta-v { color:var(--text2); }
+
+.dipl-file-body { padding:10px 14px; font-family:var(--mono); font-size:10px; color:var(--text2); line-height:1.8; }
+.dipl-file-law {
+  margin:8px 14px 12px;
+  padding:7px 10px;
+  background:rgba(0,0,0,0.3);
+  border-left:2px solid var(--cyan3);
+  font-family:var(--mono); font-size:9px; color:var(--cyan2); line-height:1.7;
+}
+.dipl-actions {
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 8px;
+}
+.dipl-action-btn {
+  font-family:var(--mono); font-size:9px; padding:4px 10px;
+  border:1px solid var(--border2); color:var(--text2);
+  background:var(--bg); cursor:pointer; letter-spacing:0.08em;
+  text-transform:uppercase; transition:all 0.15s;
+}
+.dipl-action-btn:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-glow); }
+.dipl-action-btn.red:hover { border-color:var(--red); color:var(--red); }
+.dipl-action-btn.amber:hover { border-color:var(--amber); color:var(--amber); }
+
+.dipl-stat-row {
+  display: grid; grid-template-columns: repeat(4,1fr); gap:8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  flex-shrink: 0;
+}
+.dipl-stat { text-align:center; }
+.dipl-stat-n { font-family:var(--mono); font-size:18px; font-weight:700; }
+.dipl-stat-l { font-family:var(--mono); font-size:8px; color:var(--text3); letter-spacing:0.08em; margin-top:2px; }
+
+/* SPEKTRUM */
+.spec-full { flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:14px; }
+.spec-full::-webkit-scrollbar { width:4px; }
+.spec-full::-webkit-scrollbar-thumb { background:var(--border2); }
+
+.spec-card { background:var(--bg2); border:1px solid var(--border); }
+.spec-card-hdr { padding:8px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.spec-card-title { font-family:var(--mono); font-size:10px; color:var(--cyan2); letter-spacing:0.1em; }
+.spec-card-status { font-family:var(--mono); font-size:9px; padding:2px 8px; border:1px solid; }
+.spec-card-status.normal { border-color:var(--green2); color:var(--green); }
+.spec-card-status.warn { border-color:rgba(255,171,0,0.5); color:var(--amber); }
+.spec-card-status.alarm { border-color:rgba(255,60,90,0.5); color:var(--red); animation:badge-blink 1s ease infinite; }
+.spec-canvas-wrap { padding:10px 12px; }
+.spec-bar-row { display:flex; align-items:center; gap:8px; margin-bottom:5px; font-family:var(--mono); font-size:9px; }
+.spec-bar-lbl { color:var(--text3); min-width:80px; }
+.spec-bar-bg { flex:1; background:rgba(255,255,255,0.04); height:18px; position:relative; overflow:hidden; }
+.spec-bar-fill { height:100%; position:relative; display:flex; align-items:center; justify-content:flex-end; padding-right:5px; transition:width 0.5s ease; }
+.spec-bar-fill.ok { background:linear-gradient(90deg,rgba(0,229,255,0.3),rgba(0,229,255,0.6)); }
+.spec-bar-fill.warn { background:linear-gradient(90deg,rgba(255,171,0,0.3),rgba(255,171,0,0.7)); }
+.spec-bar-fill.alarm { background:linear-gradient(90deg,rgba(255,60,90,0.3),rgba(255,60,90,0.8)); }
+.spec-bar-val { font-size:8px; color:#fff; font-weight:600; }
+.spec-bar-unit { color:var(--text3); min-width:55px; }
+.spec-bar-limit { font-size:8px; color:var(--text3); white-space:nowrap; }
+.spec-info-grid { display:grid; grid-template-columns:1fr 1fr; gap:3px; padding:8px 12px; border-top:1px solid var(--border); }
+.spec-info-row { display:flex; gap:6px; font-family:var(--mono); font-size:9px; }
+.spec-info-k { color:var(--text3); }
+.spec-info-v { color:var(--text2); }
+.spec-info-v.alarm { color:var(--red); }
+.spec-info-v.warn { color:var(--amber); }
+.spec-info-v.ok { color:var(--green); }
+
+.spec-timeline { background:var(--bg2); border:1px solid var(--border); }
+.spec-tl-hdr { padding:8px 12px; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:10px; color:var(--cyan2); letter-spacing:0.1em; }
+.spec-tl-body { padding:10px 12px; display:flex; flex-direction:column; gap:6px; }
+.spec-tl-entry { display:flex; align-items:flex-start; gap:10px; font-family:var(--mono); font-size:9px; padding-bottom:6px; border-bottom:1px solid rgba(0,229,255,0.04); }
+.spec-tl-entry:last-child { border-bottom:none; padding-bottom:0; }
+.spec-tl-time { color:var(--text3); white-space:nowrap; min-width:55px; }
+.spec-tl-dot { width:7px; height:7px; border-radius:50%; margin-top:1px; flex-shrink:0; }
+.spec-tl-dot.red { background:var(--red); box-shadow:0 0 6px var(--red); }
+.spec-tl-dot.amber { background:var(--amber); box-shadow:0 0 6px var(--amber); }
+.spec-tl-dot.green { background:var(--green); box-shadow:0 0 6px var(--green); }
+.spec-tl-dot.cyan { background:var(--cyan); box-shadow:0 0 6px var(--cyan); }
+.spec-tl-text { color:var(--text2); line-height:1.6; }
+
+/* HUKUKİ MATRİS */
+.legal-content { flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:14px; }
+.legal-content::-webkit-scrollbar { width:4px; }
+.legal-content::-webkit-scrollbar-thumb { background:var(--border2); }
+
+.legal-summary-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.legal-sum-card { background:var(--bg2); border:1px solid var(--border); padding:10px 12px; text-align:center; }
+.legal-sum-n { font-family:var(--mono); font-size:22px; font-weight:700; }
+.legal-sum-n.red { color:var(--red); text-shadow:0 0 10px rgba(255,60,90,0.4); }
+.legal-sum-n.amber { color:var(--amber); text-shadow:0 0 10px rgba(255,171,0,0.4); }
+.legal-sum-n.green { color:var(--green); text-shadow:0 0 10px rgba(0,255,157,0.4); }
+.legal-sum-l { font-family:var(--mono); font-size:8px; color:var(--text3); letter-spacing:0.08em; margin-top:3px; text-transform:uppercase; }
+
+.legal-matrix-card { background:var(--bg2); border:1px solid var(--border); }
+.legal-matrix-hdr { padding:8px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.legal-matrix-title { font-family:var(--mono); font-size:10px; color:var(--cyan2); letter-spacing:0.1em; }
+.legal-matrix-body { overflow-x:auto; }
+.legal-tbl { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:9px; }
+.legal-tbl th { padding:6px 10px; background:var(--bg); color:var(--text3); text-transform:uppercase; font-size:8px; letter-spacing:0.08em; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
+.legal-tbl td { padding:6px 10px; border-bottom:1px solid rgba(0,229,255,0.04); color:var(--text2); white-space:nowrap; vertical-align:middle; }
+.legal-tbl tr:hover td { background:rgba(0,229,255,0.03); }
+.legal-badge { font-family:var(--mono); font-size:8px; padding:2px 7px; border:1px solid; white-space:nowrap; }
+.legal-badge.aktif { border-color:rgba(255,60,90,0.5); color:var(--red); background:var(--red-dim); }
+.legal-badge.izleme { border-color:rgba(255,171,0,0.5); color:var(--amber); background:var(--amber-dim); }
+.legal-badge.kapalı { border-color:rgba(0,255,157,0.3); color:var(--green); background:var(--green-dim); }
+.legal-badge.başvuru { border-color:rgba(0,229,255,0.3); color:var(--cyan); background:var(--cyan-dim); }
+
+.legal-treaty-card { background:var(--bg2); border:1px solid var(--border); }
+.legal-treaty-hdr { padding:8px 12px; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:10px; color:var(--cyan2); letter-spacing:0.1em; }
+.legal-treaty-body { padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
+.legal-treaty-row { display:flex; align-items:flex-start; gap:10px; padding-bottom:8px; border-bottom:1px solid rgba(0,229,255,0.04); }
+.legal-treaty-row:last-child { border-bottom:none; padding-bottom:0; }
+.legal-treaty-code { font-family:var(--mono); font-size:9px; color:var(--cyan2); min-width:130px; flex-shrink:0; padding-top:1px; }
+.legal-treaty-info { flex:1; }
+.legal-treaty-name { font-family:var(--sans); font-size:12px; font-weight:600; color:var(--text); letter-spacing:0.03em; }
+.legal-treaty-desc { font-family:var(--mono); font-size:9px; color:var(--text3); margin-top:3px; line-height:1.6; }
+.legal-treaty-status { font-family:var(--mono); font-size:8px; padding:2px 7px; border:1px solid; align-self:flex-start; flex-shrink:0; white-space:nowrap; }
+.legal-treaty-status.aktif { border-color:rgba(0,255,157,0.4); color:var(--green); }
+.legal-treaty-status.süreç { border-color:rgba(255,171,0,0.4); color:var(--amber); }
+
+.legal-timeline { background:var(--bg2); border:1px solid var(--border); }
+.legal-tl-hdr { padding:8px 12px; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:10px; color:var(--cyan2); letter-spacing:0.1em; display:flex; align-items:center; justify-content:space-between; }
+.legal-tl-body { padding:10px 12px; display:flex; flex-direction:column; gap:0; }
+.legal-tl-item { display:flex; gap:14px; padding-bottom:14px; position:relative; }
+.legal-tl-item::after { content:''; position:absolute; left:14px; top:20px; bottom:0; width:1px; background:var(--border); }
+.legal-tl-item:last-child::after { display:none; }
+.legal-tl-marker { width:28px; height:28px; border:1px solid; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; flex-shrink:0; z-index:1; }
+.legal-tl-marker.red { border-color:var(--red); color:var(--red); background:var(--red-dim); }
+.legal-tl-marker.amber { border-color:var(--amber); color:var(--amber); background:var(--amber-dim); }
+.legal-tl-marker.cyan { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+.legal-tl-marker.green { border-color:var(--green); color:var(--green); background:var(--green-dim); }
+.legal-tl-info { flex:1; padding-top:4px; }
+.legal-tl-date { font-family:var(--mono); font-size:8px; color:var(--text3); }
+.legal-tl-title { font-family:var(--sans); font-size:12px; font-weight:600; color:var(--text); letter-spacing:0.04em; margin-top:2px; }
+.legal-tl-desc { font-family:var(--mono); font-size:9px; color:var(--text3); margin-top:3px; line-height:1.6; }
+
+/* MODAL */
+.modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.modal-bg.open { display:flex; }
+.modal { background:var(--bg2); border:1px solid var(--border2); width:780px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 0 60px rgba(0,229,255,0.12),0 0 120px rgba(0,229,255,0.05); position:relative; }
+.modal::-webkit-scrollbar { width:4px; }
+.modal::-webkit-scrollbar-thumb { background:var(--border2); }
+.modal-hdr { background:linear-gradient(90deg,#051a26 0%,#071d2a 100%); border-bottom:1px solid var(--border2); padding:20px 28px; display:flex; align-items:center; gap:16px; }
+.modal-emblem { width:52px; height:52px; border:2px solid var(--cyan2); border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--bg); box-shadow:0 0 20px rgba(0,229,255,0.2); flex-shrink:0; }
+.modal-org-name { font-family:var(--sans); font-size:14px; font-weight:700; color:var(--cyan); letter-spacing:0.12em; text-transform:uppercase; text-shadow:0 0 15px rgba(0,229,255,0.3); }
+.modal-org-sub { font-family:var(--mono); font-size:9px; color:var(--text2); letter-spacing:0.06em; margin-top:2px; }
+.modal-close { position:absolute; top:14px; right:18px; background:none; border:none; font-size:20px; cursor:pointer; color:var(--text3); font-family:var(--mono); transition:color 0.15s; }
+.modal-close:hover { color:var(--red); }
+.modal-body { padding:28px; font-family:var(--mono); color:var(--text); }
+.modal-doc-title { text-align:center; font-family:var(--sans); font-size:18px; font-weight:700; color:var(--cyan); letter-spacing:0.1em; text-transform:uppercase; text-shadow:0 0 20px rgba(0,229,255,0.3); border-top:1px solid var(--border2); border-bottom:1px solid var(--border2); padding:14px 0; margin-bottom:24px; }
+.modal-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:3px; margin-bottom:22px; font-size:10px; }
+.meta-row { display:flex; gap:6px; }
+.meta-k { color:var(--text3); min-width:130px; }
+.meta-v { color:var(--text); }
+.modal-section { margin-bottom:20px; }
+.modal-sec-title { font-family:var(--sans); font-size:12px; font-weight:700; color:var(--cyan2); letter-spacing:0.1em; text-transform:uppercase; border-bottom:1px solid var(--border2); padding-bottom:5px; margin-bottom:12px; }
+.modal-p { font-size:11px; color:var(--text2); line-height:1.8; margin-bottom:8px; }
+.modal-law-ref { background:var(--cyan-glow); border-left:2px solid var(--cyan3); padding:8px 12px; font-size:10px; color:var(--cyan2); margin:6px 0; line-height:1.7; }
+.modal-data-block { background:var(--bg); border:1px solid var(--border); padding:10px 14px; font-size:10px; margin:8px 0; line-height:2; }
+.modal-data-block .k { color:var(--text3); display:inline-block; min-width:200px; }
+.modal-data-block .v { color:var(--cyan); }
+.modal-sigs { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; padding-top:16px; border-top:1px solid var(--border2); }
+.sig-line { border-top:1px solid var(--border2); margin-bottom:5px; }
+.sig-name { font-family:var(--sans); font-size:12px; font-weight:600; color:var(--cyan); letter-spacing:0.05em; }
+.sig-title { font-size:9px; color:var(--text3); margin-top:2px; }
+.modal-hash-row { background:var(--bg); border:1px solid var(--green2); padding:8px 12px; margin-top:16px; font-size:9px; display:flex; align-items:center; gap:8px; }
+.modal-hash-label { color:var(--green); white-space:nowrap; }
+.modal-hash-val { color:var(--text3); word-break:break-all; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo-hex">
+      <svg viewBox="0 0 48 48" fill="none">
+        <polygon points="24,2 44,13 44,35 24,46 4,35 4,13" stroke="#00e5ff" stroke-width="1.5" fill="rgba(0,229,255,0.06)"/>
+        <polygon points="24,8 38,16 38,32 24,40 10,32 10,16" stroke="#006a7a" stroke-width="1" fill="none"/>
+        <circle cx="24" cy="24" r="5" fill="#00e5ff" opacity="0.9"/>
+        <line x1="24" y1="8" x2="24" y2="19" stroke="#00e5ff" stroke-width="0.8" opacity="0.5"/>
+        <line x1="24" y1="29" x2="24" y2="40" stroke="#00e5ff" stroke-width="0.8" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <h1>GÖK-İZ</h1>
+      <p>Gök Vatan Hak İzleme ve Yörünge Analiz Sistemi · TUA/UYDU-İZ v3.1</p>
+    </div>
+  </div>
+  <div class="header-center">
+    <div class="header-stat"><span class="stat-label">SGP4 Motor</span><span class="stat-value green">AKTİF</span></div>
+    <div class="header-stat"><span class="stat-label">İzlenen Uydu</span><span class="stat-value">02</span></div>
+    <div class="header-stat"><span class="stat-label">Güncelleme Aralığı</span><span class="stat-value">1.0 sn</span></div>
+    <div class="header-stat"><span class="stat-label">Kanıt Kaydı</span><span class="stat-value" id="hdrHashCount">00</span></div>
+    <div class="header-stat"><span class="stat-label">Sistem Güveni</span><span class="stat-value green">99.97%</span></div>
+  </div>
+  <div class="header-right">
+    <div class="sys-status"><div class="pulse-dot"></div>SİSTEM CANLI</div>
+    <div class="utc-clock" id="utcClock">--:--:--</div>
+    <div class="classify-badge">HİZMETE ÖZEL</div>
+  </div>
+</header>
+
+<!-- NAV -->
+<div class="nav-bar">
+  <div class="nav-item active" onclick="switchTab('yorunge',this)">Yörünge Analizi</div>
+  <div class="nav-item" onclick="switchTab('diplomatik',this)">Diplomatik Dosyalar</div>
+  <div class="nav-item" onclick="switchTab('spektrum',this)">Spektrum İzleme</div>
+  <div class="nav-item" onclick="switchTab('hukuki',this)">Hukuki Matris</div>
+  <div class="nav-sep"></div>
+  <div class="nav-epoch" id="navEpoch">Epoch: 2026-087.xx · SGP4/SDP4 Propagatör Aktif</div>
+</div>
+
+<!-- ===== TAB VIEWS ===== -->
+
+<!-- TAB: YÖRÜNGE ANALİZİ -->
+<div class="tab-view active" id="tab-yorunge">
+  <div class="main-layout">
+    <!-- LEFT -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <span class="panel-hdr-title">Anlık Telemetri — SGP4</span>
+        <span class="panel-hdr-badge live">CANLI SGP4</span>
+      </div>
+      <div class="panel-body">
+        <div class="sat-card ts6a">
+          <div class="sat-card-hdr">
+            <div><div class="sat-name">TÜRKSAT 6A</div><div class="sat-norad">NORAD ID: 60232 · GEO · 42.0°E</div></div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--green);text-align:right;">● AKTİF<br><span style="color:var(--text3)" id="ts6a-age">--</span></div>
+          </div>
+          <div class="sat-coords">
+            <div class="coord-row"><span class="coord-key">Enlem (LAT)</span><span class="coord-val" id="ts6a-lat">---.----<span class="coord-unit">°</span></span></div>
+            <div class="coord-row"><span class="coord-key">Boylam (LON)</span><span class="coord-val" id="ts6a-lon">---.----<span class="coord-unit">°</span></span></div>
+            <div class="coord-row"><span class="coord-key">İrtifa (ALT)</span><span class="coord-val" id="ts6a-alt">-----.--<span class="coord-unit"> km</span></span></div>
+            <div class="coord-row"><span class="coord-key">Hız (VEL)</span><span class="coord-val" id="ts6a-vel">-.----<span class="coord-unit"> km/s</span></span></div>
+          </div>
+          <div class="sat-extra">
+            <div class="mini-stat"><span class="mini-label">RAAN</span><span class="mini-val" id="ts6a-raan">0.00°</span></div>
+            <div class="mini-stat"><span class="mini-label">İNCL</span><span class="mini-val" id="ts6a-incl">0.00°</span></div>
+            <div class="mini-stat"><span class="mini-label">EKSEN</span><span class="mini-val" id="ts6a-ecc">0.000001</span></div>
+          </div>
+        </div>
+        <div class="sat-card ts5b">
+          <div class="sat-card-hdr">
+            <div><div class="sat-name">TÜRKSAT 5B</div><div class="sat-norad">NORAD ID: 50203 · GEO · 50.0°E</div></div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--green);text-align:right;">● AKTİF<br><span style="color:var(--text3)" id="ts5b-age">--</span></div>
+          </div>
+          <div class="sat-coords">
+            <div class="coord-row"><span class="coord-key">Enlem (LAT)</span><span class="coord-val" id="ts5b-lat" style="color:var(--green)">---.----<span class="coord-unit">°</span></span></div>
+            <div class="coord-row"><span class="coord-key">Boylam (LON)</span><span class="coord-val" id="ts5b-lon" style="color:var(--green)">---.----<span class="coord-unit">°</span></span></div>
+            <div class="coord-row"><span class="coord-key">İrtifa (ALT)</span><span class="coord-val" id="ts5b-alt" style="color:var(--green)">-----.--<span class="coord-unit"> km</span></span></div>
+            <div class="coord-row"><span class="coord-key">Hız (VEL)</span><span class="coord-val" id="ts5b-vel" style="color:var(--green)">-.----<span class="coord-unit"> km/s</span></span></div>
+          </div>
+          <div class="sat-extra">
+            <div class="mini-stat"><span class="mini-label">RAAN</span><span class="mini-val" id="ts5b-raan">0.00°</span></div>
+            <div class="mini-stat"><span class="mini-label">İNCL</span><span class="mini-val" id="ts5b-incl">0.00°</span></div>
+            <div class="mini-stat"><span class="mini-label">EKSEN</span><span class="mini-val" id="ts5b-ecc">0.000001</span></div>
+          </div>
+        </div>
+        <div class="section-label">Ham TLE Verisi — Kaynak: Space-Track.org</div>
+        <div class="tle-block">
+          <div class="tle-sat-name">► TÜRKSAT 6A [NORAD 60232]</div>
+          <div class="tle-line"><span>1</span> 60232U 24137A   26086.50000000  .00000000  00000-0  00000-0 0  9990</div>
+          <div class="tle-line"><span>2</span> 60232  00.0411 042.0000 0001234 000.0000 360.0000  1.00273791  7300</div>
+        </div>
+        <div class="tle-block">
+          <div class="tle-sat-name">► TÜRKSAT 5B [NORAD 50203]</div>
+          <div class="tle-line"><span>1</span> 50203U 21112A   26086.50000000  .00000000  00000-0  00000-0 0  9994</div>
+          <div class="tle-line"><span>2</span> 50203  00.0296 050.0000 0000891 000.0000 360.0000  1.00273791 15840</div>
+        </div>
+        <div class="section-label">Gerçek Zamanlı Hesaplama Parametreleri</div>
+        <table class="data-tbl">
+          <thead><tr><th>Parametre</th><th>TS-6A</th><th>TS-5B</th></tr></thead>
+          <tbody>
+            <tr><td>Yarı Büyük Eksen</td><td class="hi">42,164 km</td><td class="green-hi">42,164 km</td></tr>
+            <tr><td>Yörünge Periyodu</td><td class="hi">1436.1 dk</td><td class="green-hi">1436.1 dk</td></tr>
+            <tr><td>GEO Slot</td><td class="hi">42.0°E</td><td class="green-hi">50.0°E</td></tr>
+            <tr><td>Eksentrisite</td><td>0.0001234</td><td>0.0000891</td></tr>
+            <tr><td>İrtifa (nom)</td><td class="hi">35,786 km</td><td class="green-hi">35,786 km</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="scenario-area">
+        <div class="scenario-title">■ İhlal Simülasyon Senaryoları</div>
+        <button class="btn-scenario type-a" onclick="triggerScenario('A',this)"><span class="btn-code">A</span><span class="btn-label">Siber Müdahale Analizi</span></button>
+        <button class="btn-scenario type-b" onclick="triggerScenario('B',this)"><span class="btn-code">B</span><span class="btn-label">Yörünge Slot İhlali</span></button>
+        <button class="btn-scenario type-c" onclick="triggerScenario('C',this)"><span class="btn-code">C</span><span class="btn-label">Siber Sızma (Spoofing)</span></button>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="panel center-panel">
+      <div class="panel-hdr">
+        <span class="panel-hdr-title">Analiz ve Görselleştirme Modülü</span>
+        <span class="panel-hdr-badge" id="centerBadge">BEKLEME</span>
+      </div>
+      <div id="defaultCenter" class="default-center">
+        <div class="globe-anim">
+          <div class="orbit-a"><div class="orbit-dot-a"></div></div>
+          <div class="orbit-b"><div class="orbit-dot-b"></div></div>
+          <div class="globe-inner">🌍</div>
+        </div>
+        <div class="default-label">SGP4 yörünge motoru çalışıyor.<br>Sol panelden senaryo seçerek<br>ihlal analizini başlatın.</div>
+      </div>
+      <div id="analysisOutput" style="display:none;overflow-y:auto;flex:1;">
+        <div id="alertBox" class="alert-box"></div>
+        <div class="canvas-wrapper" id="canvasWrap">
+          <div class="canvas-hdr"><span id="canvasTitle">VİZUALİZASYON</span><span id="canvasLive" style="font-family:var(--mono);font-size:8px;color:var(--green);">● CANLI</span></div>
+          <canvas id="mainCanvas" width="600" height="200"></canvas>
+        </div>
+        <div style="padding:0 12px;" id="dataTables"></div>
+      </div>
+      <div class="decl-btn-wrap">
+        <button class="btn-decl" onclick="showDeclaration()">⚖ Uluslararası Uzay Hukuku Bildirgesi Oluştur</button>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <span class="panel-hdr-title">Hukuki Kanıt Kaydı</span>
+        <span class="panel-hdr-badge live">SHA-256</span>
+      </div>
+      <div class="panel-body" id="hashLogPanel">
+        <div class="hash-empty">Henüz kanıt kaydı oluşturulmadı.<br><br>Senaryo tetiklendiğinde SHA-256<br>imzalı kanıt zincirleri burada<br>listelenir.</div>
+      </div>
+      <div class="decl-btn-wrap" style="padding:10px 12px;">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--text3);line-height:1.8;text-align:center;">
+          <span style="color:var(--green);">✓ BLOCKCHAIN HAZIR</span><br>
+          Tüm kanıtlar değiştirilemez kayıt zincirinde saklanır.<br>
+          Zaman damgası: UTC · SHA-256 · Ed25519
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: DİPLOMATİK DOSYALAR -->
+<div class="tab-view" id="tab-diplomatik" style="flex-direction:column;height:calc(100vh - 90px);overflow:hidden;">
+  <div class="dipl-stat-row">
+    <div class="dipl-stat"><div class="dipl-stat-n" style="color:var(--red);">03</div><div class="dipl-stat-l">Açık Dosya</div></div>
+    <div class="dipl-stat"><div class="dipl-stat-n" style="color:var(--amber);">01</div><div class="dipl-stat-l">Beklemede</div></div>
+    <div class="dipl-stat"><div class="dipl-stat-n" style="color:var(--green);">07</div><div class="dipl-stat-l">Kapatıldı</div></div>
+    <div class="dipl-stat"><div class="dipl-stat-n" style="color:var(--cyan);">02</div><div class="dipl-stat-l">BM Başvurusu</div></div>
+  </div>
+  <div class="dipl-header">
+    <span class="dipl-header-title">Diplomatik Başvuru ve Nota Dosyaları — TUA/DİPL/2026</span>
+    <span class="panel-hdr-badge">GÜNCEL · <span id="diplDate">--</span></span>
+  </div>
+  <div class="dipl-content">
+
+    <div class="dipl-file-card priority-yüksek">
+      <div class="dipl-file-hdr">
+        <div>
+          <div class="dipl-file-id">DOSYA NO: TUA-DIPL-2026-031-A</div>
+          <div class="dipl-file-title">Ka-Band Frekans Müdahalesi — Acil Diplomatik Nota</div>
+        </div>
+        <span class="dipl-priority-badge yüksek">YÜKSEK ÖNCELİK</span>
+      </div>
+      <div class="dipl-file-meta">
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Başvuru Tarihi:</span><span class="dipl-meta-v">2026-03-22 09:14 UTC</span></div>
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Hedef Kurum:</span><span class="dipl-meta-v">ITU Radyo Bürosu, Cenevre</span></div>
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Şikayet Ref.:</span><span class="dipl-meta-v">TR-2026-03-GÖKİZ</span></div>
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Durum:</span><span class="dipl-meta-v" style="color:var(--red);">● İŞLEMDE</span></div>
+      </div>
+      <div class="dipl-file-body">
+        TÜRKSAT 6A (42°E) Ka-Band downlink kanalında (19.700 GHz) ölçülen zararlı karışma (harmful interference) ITU RR No. 15.1 kapsamında belgelenmiş ve ITU Radyo Bürosu'na acil şikayet bildirimi yapılmıştır. Parazit kaynak 38.2°E ±0.4° konumuna TDOA yöntemiyle lokalize edilmiştir. Frekans koordinasyon yükümlülüğü ihlali tespit edilmiş olup ilgili uydu operatörünün kimliğinin tespiti için IFCOM süreci başlatılmıştır.
+      </div>
+      <div class="dipl-file-law">▶ ITU RR Madde 15.1 — Zararlı Karışma Yasağı &nbsp;|&nbsp; ▶ ITU RR No. 11.41 — Koordinasyon Yükümlülüğü &nbsp;|&nbsp; ▶ ITU Constitution Madde 45</div>
+      <div class="dipl-actions">
+        <button class="dipl-action-btn red">● Acil İtiraz</button>
+        <button class="dipl-action-btn amber">⬇ Raporı İndir</button>
+        <button class="dipl-action-btn">SHA-256 Doğrula</button>
+        <button class="dipl-action-btn">Takip Et</button>
+      </div>
+    </div>
+
+    <div class="dipl-file-card priority-yüksek">
+      <div class="dipl-file-hdr">
+        <div>
+          <div class="dipl-file-id">DOSYA NO: TUA-DIPL-2026-029-B</div>
+          <div class="dipl-file-title">42°E Orbital Slot Koruma Koridoru İhlali — OST Md. II Bildirimi</div>
+        </div>
+        <span class="dipl-priority-badge yüksek">YÜKSEK ÖNCELİK</span>
+      </div>
+      <div class="dipl-file-meta">
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Başvuru Tarihi:</span><span class="dipl-meta-v">2026-03-20 17:42 UTC</span></div>
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Hedef Kurum:</span><span class="dipl-meta-v">UNOOSA — BM Dış Uzay İşleri Ofisi</span></div>
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Yaklaşma Mesafesi:</span><span class="dipl-meta-v" style="color:var(--red);">91.4 km (KOZ: ±73.8 km)</span></div>
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Durum:</span><span class="dipl-meta-v" style="color:var(--red);">● ACİL PROSEDÜR</span></div>
+      </div>
+      <div class="dipl-file-body">
+        Tescilsiz bir uzay nesnesinin TÜRKSAT 6A Keep-out Zone (±0.1° = ≈73.8 km) koruma koridoruna girdiği SGP4 propagasyon hesaplamalarıyla tespit edilmiştir. Cismin NORAD kataloğunda kaydının bulunmaması, BM Uzay Nesneleri Tescil Sözleşmesi (1976) Madde II kapsamında ayrı bir ihlal teşkil etmektedir. 72 saatlik süre diplomatik nota yoluyla bildirilmiş olup manevra gerçekleştirilmemesi halinde BM Güvenlik Konseyi'ne sevk gündeme gelecektir.
+      </div>
+      <div class="dipl-file-law">▶ BM OST 1967 Md. II — Orbital Mülkiyet Yasağı &nbsp;|&nbsp; ▶ BM OST Md. IX — Due Regard Prensibi &nbsp;|&nbsp; ▶ Tescil Sözleşmesi 1976 Md. II</div>
+      <div class="dipl-actions">
+        <button class="dipl-action-btn red">● BM Bildirimi</button>
+        <button class="dipl-action-btn amber">72h Sayaç</button>
+        <button class="dipl-action-btn">Koordinat Ekle</button>
+        <button class="dipl-action-btn">Arşivle</button>
+      </div>
+    </div>
+
+    <div class="dipl-file-card priority-orta">
+      <div class="dipl-file-hdr">
+        <div>
+          <div class="dipl-file-id">DOSYA NO: TUA-DIPL-2026-027-C</div>
+          <div class="dipl-file-title">TT&C Uplink Spoofing Olayı — CCSDS Siber Güvenlik Bildirimi</div>
+        </div>
+        <span class="dipl-priority-badge orta">ORTA ÖNCELİK</span>
+      </div>
+      <div class="dipl-file-meta">
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Başvuru Tarihi:</span><span class="dipl-meta-v">2026-03-18 11:08 UTC</span></div>
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Hedef Kurum:</span><span class="dipl-meta-v">CCSDS Sekreteryası / CERT-TR</span></div>
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Hata Oranı:</span><span class="dipl-meta-v" style="color:var(--amber);">%42.8 (3/7 paket)</span></div>
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Durum:</span><span class="dipl-meta-v" style="color:var(--amber);">● SORUŞTURMADA</span></div>
+      </div>
+      <div class="dipl-file-body">
+        TÜRKSAT 6A TT&C uplink kanalında tespit edilen Ed25519 imza uyumsuzluğu ve ±340 ms zaman damgası sapması, koordineli bir siber saldırı vektörüne işaret etmektedir. Spoofing olasılığı %94.2 olarak hesaplanmıştır. Olay, TUA Siber Güvenlik Protokolü TUA/SİBER/2024-7 kapsamında belgelenmiş; ulusal siber güvenlik ajansları ve uluslararası CERT ağlarına bildirim yapılmıştır.
+      </div>
+      <div class="dipl-file-law">▶ TUA/SİBER/2024-7 Uzay Siber Egemenlik Protokolü &nbsp;|&nbsp; ▶ ITU-R S.1711 &nbsp;|&nbsp; ▶ CCSDS SDLP 131.0-B-3 Güvenlik Uzantısı Md. 5</div>
+      <div class="dipl-actions">
+        <button class="dipl-action-btn">CERT Bildir</button>
+        <button class="dipl-action-btn amber">Log Paylaş</button>
+        <button class="dipl-action-btn">İmza Doğrula</button>
+        <button class="dipl-action-btn">Arşivle</button>
+      </div>
+    </div>
+
+    <div class="dipl-file-card priority-düşük">
+      <div class="dipl-file-hdr">
+        <div>
+          <div class="dipl-file-id">DOSYA NO: TUA-DIPL-2026-019-D</div>
+          <div class="dipl-file-title">TÜRKSAT 5B Ku-Band Koordinasyon Yenileme Başvurusu</div>
+        </div>
+        <span class="dipl-priority-badge düşük">RUTIN</span>
+      </div>
+      <div class="dipl-file-meta">
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Başvuru Tarihi:</span><span class="dipl-meta-v">2026-02-14 08:30 UTC</span></div>
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Hedef Kurum:</span><span class="dipl-meta-v">ITU Radyo Bürosu</span></div>
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Slot:</span><span class="dipl-meta-v">50.0°E</span></div>
+        <div class="dipl-meta-item"><span class="dipl-meta-k">Durum:</span><span class="dipl-meta-v" style="color:var(--green);">● ONAYLANDI</span></div>
+      </div>
+      <div class="dipl-file-body">
+        TÜRKSAT 5B (50°E) Ku-Band frekans koordinasyonunun 7 yıllık periyodik yenileme başvurusu ITU Radyo Bürosu tarafından onaylanmıştır. Frekans tahsisi 2033 yılına kadar geçerlidir. İlgili koordinasyon koordinatları ITU Master Frequency Register'a işlenmiştir.
+      </div>
+      <div class="dipl-file-law">▶ ITU RR Madde 11 — Frekans Koordinasyonu &nbsp;|&nbsp; ▶ ITU RR Appendix 30B</div>
+      <div class="dipl-actions">
+        <button class="dipl-action-btn">Belge Görüntüle</button>
+        <button class="dipl-action-btn">Takvime Ekle</button>
+        <button class="dipl-action-btn">Arşivle</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TAB: SPEKTRUM İZLEME -->
+<div class="tab-view" id="tab-spektrum" style="flex-direction:column;height:calc(100vh - 90px);overflow:hidden;">
+  <div class="dipl-header" style="flex-shrink:0;">
+    <span class="dipl-header-title">Radyo Frekans Spektrum İzleme Paneli — Gerçek Zamanlı</span>
+    <span class="panel-hdr-badge live">CANLI ÖLÇÜM</span>
+  </div>
+  <div class="spec-full">
+
+    <!-- Ka-Band -->
+    <div class="spec-card">
+      <div class="spec-card-hdr">
+        <span class="spec-card-title">Ka-BAND · 19.7–20.2 GHz / 29.5–30.0 GHz — TÜRKSAT 6A Downlink/Uplink</span>
+        <span class="spec-card-status alarm">⚠ MÜDAHALE TESPİT</span>
+      </div>
+      <div class="spec-canvas-wrap">
+        <div class="spec-bar-row">
+          <span class="spec-bar-lbl">19.700 GHz DL</span>
+          <div class="spec-bar-bg"><div class="spec-bar-fill alarm" style="width:94%"><span class="spec-bar-val">+14.7dB</span></div></div>
+          <span class="spec-bar-unit">I/N Oranı</span>
+          <span class="spec-bar-limit">Limit: −12.2 dB</span>
+        </div>
+        <div class="spec-bar-row">
+          <span class="spec-bar-lbl">19.950 GHz DL</span>
+          <div class="spec-bar-bg"><div class="spec-bar-fill ok" style="width:18%"><span class="spec-bar-val">−18.4</span></div></div>
+          <span class="spec-bar-unit">I/N Oranı</span>
+          <span class="spec-bar-limit">Normal</span>
+        </div>
+        <div class="spec-bar-row">
+          <span class="spec-bar-lbl">20.200 GHz DL</span>
+          <div class="spec-bar-bg"><div class="spec-bar-fill ok" style="width:12%"><span class="spec-bar-val">−22.1</span></div></div>
+          <span class="spec-bar-unit">I/N Oranı</span>
+          <span class="spec-bar-limit">Normal</span>
+        </div>
+        <div class="spec-bar-row">
+          <span class="spec-bar-lbl">29.500 GHz UL</span>
+          <div class="spec-bar-bg"><div class="spec-bar-fill warn" style="width:52%"><span class="spec-bar-val">−4.3dB</span></div></div>
+          <span class="spec-bar-unit">I/N Oranı</span>
+          <span class="spec-bar-limit">Dikkat: −5.0 dB</span>
+        </div>
+        <div class="spec-bar-row">
+          <span class="spec-bar-lbl">30.000 GHz UL</span>
+          <div class="spec-bar-bg"><div class="spec-bar-fill ok" style="width:15%"><span class="spec-bar-val">−20.7</span></div></div>
+          <span class="spec-bar-unit">I/N Oranı</span>
+          <span class="spec-bar-limit">Normal</span>
+        </div>
+      </div>
+      <div class="spec-info-grid">
+        <div class="spec-info-row"><span class="spec-info-k">Etkilenen BW:</span><span class="spec-info-v alarm">29.4 MHz</span></div>
+        <div class="spec-info-row"><span class="spec-info-k">Kaynak Konumu:</span><span class="spec-info-v alarm">38.2°E ±0.4°</span></div>
+        <div class="spec-info-row"><span class="spec-info-k">Tespit Yöntemi:</span><span class="spec-info-v">TDOA · DF Analizi</span></div>
+        <div class="spec-info-row"><span class="spec-info-k">Güç Artışı:</span><span class="spec-info-v alarm">%15.3</span></div>
+        <div class="spec-info-row"><span class="spec-info-k">İlk Tespit:</span><span class="spec-info-v">2026-03-22 07:03Z</span></div>
+        <div class="spec-info-row"><span class="spec-info-k">ITU Bildirim:</span><span class="spec-info-v warn">GÖNDERİLDİ</span></div>
+      </div>
+    </div>
+
+    <!-- Ku-Band -->
+    <div class="spec-card">
+      <div class="spec-card-hdr">
+        <span class="spec-card-title">Ku-BAND · 10.7–12.75 GHz / 13.75–14.5 GHz — TÜRKSAT 5B Downlink/Uplink</span>
+        <span class="spec-card-status normal">● NORMAL</span>
+      </div>
+      <div class="spec-canvas-wrap">
+        <div class="spec-bar-row">
+          <span class="spec-bar-lbl">10.950 GHz DL</span>
+          <div class="spec-bar-bg"><div class="spec-bar-fill ok" style="width:9%"><span class="spec-bar-val">−24.8</span></div></div>
+          <span class="spec-bar-unit">I/N Oranı</span>
+          <span class="spec-bar-limit">Normal</span>
+        </div>
+        <div class="spec-bar-row">
+          <span class="spec-bar-lbl">11.200 GHz DL</span>
+          <div class="spec-bar-bg"><div class="spec-bar-fill ok" style="width:11%"><span class="spec-bar-val">−21.3</span></div></div>
+          <span class="spec-bar-unit">I/N Oranı</span>
+          <span class="spec-bar-limit">Normal</span>
+        </div>
+        <div class="spec-bar-row">
+          <span class="spec-bar-lbl">12.500 GHz DL</span>
+          <div class="spec-bar-bg"><div class="spec-bar-fill ok" style="width:14%"><span class="spec-bar-val">−19.6</span></div></div>
+          <span class="spec-bar-unit">I/N Oranı</span>
+          <span class="spec-bar-limit">Normal</span>
+        </div>
+        <div class="spec-bar-row">
+          <span class="spec-bar-lbl">14.000 GHz UL</span>
+          <div class="spec-bar-bg"><div class="spec-bar-fill ok" style="width:8%"><span class="spec-bar-val">−26.1</span></div></div>
+          <span class="spec-bar-unit">I/N Oranı</span>
+          <span class="spec-bar-limit">Normal</span>
+        </div>
+      </div>
+      <div class="spec-info-grid">
+        <div class="spec-info-row"><span class="spec-info-k">Genel Durum:</span><span class="spec-info-v ok">TEMİZ</span></div>
+        <div class="spec-info-row"><span class="spec-info-k">Son Anormallik:</span><span class="spec-info-v">2026-01-08 (Çözüldü)</span></div>
+        <div class="spec-info-row"><span class="spec-info-k">İzleme Süresi:</span><span class="spec-info-v">78 gün kesintisiz</span></div>
+        <div class="spec-info-row"><span class="spec-info-k">Max I/N:</span><span class="spec-info-v ok">−19.6 dB</span></div>
+      </div>
+    </div>
+
+    <!-- TT&C Band -->
+    <div class="spec-card">
+      <div class="spec-card-hdr">
+        <span class="spec-card-title">TT&C BAND · S-Band 2.0–2.1 GHz — Komuta/Telemetri Kanalı</span>
+        <span class="spec-card-status warn">⚡ ANOMALİ</span>
+      </div>
+      <div class="spec-canvas-wrap">
+        <div class="spec-bar-row">
+          <span class="spec-bar-lbl">2.025 GHz TC</span>
+          <div class="spec-bar-bg"><div class="spec-bar-fill warn" style="width:61%"><span class="spec-bar-val">SNR: 8.4</span></div></div>
+          <span class="spec-bar-unit">dB</span>
+          <span class="spec-bar-limit">Min: 12.0 dB</span>
+        </div>
+        <div class="spec-bar-row">
+          <span class="spec-bar-lbl">2.075 GHz TM</span>
+          <div class="spec-bar-bg"><div class="spec-bar-fill alarm" style="width:43%"><span class="spec-bar-val">SNR: 6.1</span></div></div>
+          <span class="spec-bar-unit">dB</span>
+          <span class="spec-bar-limit">KRİTİK ALTI</span>
+        </div>
+        <div class="spec-bar-row">
+          <span class="spec-bar-lbl">2.100 GHz RNG</span>
+          <div class="spec-bar-bg"><div class="spec-bar-fill ok" style="width:78%"><span class="spec-bar-val">SNR: 18.7</span></div></div>
+          <span class="spec-bar-unit">dB</span>
+          <span class="spec-bar-limit">Normal</span>
+        </div>
+      </div>
+      <div class="spec-info-grid">
+        <div class="spec-info-row"><span class="spec-info-k">İmza Hatası:</span><span class="spec-info-v alarm">3/7 paket (%42.8)</span></div>
+        <div class="spec-info-row"><span class="spec-info-k">Zaman Sapması:</span><span class="spec-info-v warn">±340 ms</span></div>
+        <div class="spec-info-row"><span class="spec-info-k">Spoofing Riski:</span><span class="spec-info-v alarm">%94.2 (YÜKSEK)</span></div>
+        <div class="spec-info-row"><span class="spec-info-k">Savunma Durumu:</span><span class="spec-info-v ok">AKTİF · TUA/SİBER-7</span></div>
+      </div>
+    </div>
+
+    <!-- Olay Günlüğü -->
+    <div class="spec-timeline">
+      <div class="spec-tl-hdr">Spektrum Olay Günlüğü — Son 72 Saat</div>
+      <div class="spec-tl-body">
+        <div class="spec-tl-entry">
+          <span class="spec-tl-time">09:14 UTC</span>
+          <div class="spec-tl-dot red"></div>
+          <span class="spec-tl-text"><strong style="color:var(--red);">KRİTİK</strong> — 19.700 GHz Ka-Band'de I/N = +14.7 dB. ITU bildirimi gönderildi. TDOA analizi başlatıldı.</span>
+        </div>
+        <div class="spec-tl-entry">
+          <span class="spec-tl-time">08:47 UTC</span>
+          <div class="spec-tl-dot amber"></div>
+          <span class="spec-tl-text"><strong style="color:var(--amber);">UYARI</strong> — 2.075 GHz TT&C telemetri kanalında SNR eşiği aşıldı. Paket imza hatası başladı.</span>
+        </div>
+        <div class="spec-tl-entry">
+          <span class="spec-tl-time">07:03 UTC</span>
+          <div class="spec-tl-dot amber"></div>
+          <span class="spec-tl-text"><strong style="color:var(--amber);">UYARI</strong> — 29.500 GHz Ka UL kanalında güç yükselişi başladı. Otomatik izleme aktive edildi.</span>
+        </div>
+        <div class="spec-tl-entry">
+          <span class="spec-tl-time">D-1 21:30</span>
+          <div class="spec-tl-dot cyan"></div>
+          <span class="spec-tl-text"><strong style="color:var(--cyan);">BİLGİ</strong> — Rutin spektrum taraması tamamlandı. Tüm kanallar normal parametrelerde.</span>
+        </div>
+        <div class="spec-tl-entry">
+          <span class="spec-tl-time">D-2 14:15</span>
+          <div class="spec-tl-dot green"></div>
+          <span class="spec-tl-text"><strong style="color:var(--green);">ÇÖZÜLDÜ</strong> — Ku-Band'deki geçici parazit kaynağı neutralize edildi. Koordinasyon tamamlandı.</span>
+        </div>
+        <div class="spec-tl-entry">
+          <span class="spec-tl-time">D-3 09:00</span>
+          <div class="spec-tl-dot green"></div>
+          <span class="spec-tl-text"><strong style="color:var(--green);">NORMAL</strong> — Haftalık spektrum denetimi tamamlandı. Hiçbir anomali tespit edilmedi.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TAB: HUKUKİ MATRİS -->
+<div class="tab-view" id="tab-hukuki" style="flex-direction:column;height:calc(100vh - 90px);overflow:hidden;">
+  <div class="dipl-header" style="flex-shrink:0;">
+    <span class="dipl-header-title">Uzay Hukuku İhlal Matrisi ve Antlaşma Referans Sistemi</span>
+    <span class="panel-hdr-badge">TUA/HUK/2026</span>
+  </div>
+  <div class="legal-content">
+
+    <!-- Özet -->
+    <div class="legal-summary-grid">
+      <div class="legal-sum-card"><div class="legal-sum-n red">03</div><div class="legal-sum-l">Aktif İhlal</div></div>
+      <div class="legal-sum-card"><div class="legal-sum-n amber">02</div><div class="legal-sum-l">İzlemedeki</div></div>
+      <div class="legal-sum-card"><div class="legal-sum-n green">07</div><div class="legal-sum-l">Çözülen</div></div>
+    </div>
+
+    <!-- İhlal Matrisi -->
+    <div class="legal-matrix-card">
+      <div class="legal-matrix-hdr">
+        <span class="legal-matrix-title">İhlal Matrisi — Aktif Vakalar</span>
+        <span class="panel-hdr-badge live">CANLI</span>
+      </div>
+      <div class="legal-matrix-body">
+        <table class="legal-tbl">
+          <thead>
+            <tr>
+              <th>Vaka No</th>
+              <th>İhlal Türü</th>
+              <th>Antlaşma / Kural</th>
+              <th>Etkilenen Sistem</th>
+              <th>Tespit Tarihi</th>
+              <th>Risk</th>
+              <th>Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="hi">VK-2026-031</td>
+              <td>Zararlı Radyo Karışması</td>
+              <td>ITU RR No. 15.1</td>
+              <td>TÜRKSAT 6A · 42°E</td>
+              <td>2026-03-22</td>
+              <td style="color:var(--red);">KRİTİK</td>
+              <td><span class="legal-badge aktif">AKTİF</span></td>
+            </tr>
+            <tr>
+              <td class="hi">VK-2026-029</td>
+              <td>Orbital Slot Tecavüzü</td>
+              <td>OST Md. II / IX</td>
+              <td>TÜRKSAT 6A · 42°E</td>
+              <td>2026-03-20</td>
+              <td style="color:var(--red);">YÜKSEK</td>
+              <td><span class="legal-badge aktif">AKTİF</span></td>
+            </tr>
+            <tr>
+              <td class="hi">VK-2026-027</td>
+              <td>Siber Sızma / Spoofing</td>
+              <td>TUA/SİBER/2024-7</td>
+              <td>TT&C · S-Band</td>
+              <td>2026-03-18</td>
+              <td style="color:var(--amber);">ORTA</td>
+              <td><span class="legal-badge izleme">İZLEME</span></td>
+            </tr>
+            <tr>
+              <td class="hi">VK-2026-014</td>
+              <td>Tescil Yükümlülüğü İhlali</td>
+              <td>Tescil Sözl. Md. II</td>
+              <td>Tescilsiz Cisim · 42°E</td>
+              <td>2026-03-20</td>
+              <td style="color:var(--red);">YÜKSEK</td>
+              <td><span class="legal-badge başvuru">BM BAŞVURUSU</span></td>
+            </tr>
+            <tr>
+              <td>VK-2025-088</td>
+              <td>Ku-Band Koordinasyon Eksikliği</td>
+              <td>ITU RR No. 11.41</td>
+              <td>TÜRKSAT 5B · 50°E</td>
+              <td>2025-11-03</td>
+              <td style="color:var(--green);">DÜŞÜK</td>
+              <td><span class="legal-badge kapalı">KAPATILDI</span></td>
+            </tr>
+            <tr>
+              <td>VK-2025-061</td>
+              <td>Orbital Debris İhlali</td>
+              <td>IADC Kılavuz Md. 5</td>
+              <td>GEO Koridoru</td>
+              <td>2025-07-14</td>
+              <td style="color:var(--green);">DÜŞÜK</td>
+              <td><span class="legal-badge kapalı">KAPATILDI</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Antlaşma Referansları -->
+    <div class="legal-treaty-card">
+      <div class="legal-treaty-hdr">Uygulanabilir Uluslararası Uzay Hukuku Antlaşmaları ve Düzenlemeleri</div>
+      <div class="legal-treaty-body">
+        <div class="legal-treaty-row">
+          <span class="legal-treaty-code">OST · 1967</span>
+          <div class="legal-treaty-info">
+            <div class="legal-treaty-name">BM Dış Uzay Antlaşması (Outer Space Treaty)</div>
+            <div class="legal-treaty-desc">Md. I: Barışçıl kullanım · Md. II: Egemenlik/mülkiyet yasağı · Md. VI: Devlet sorumluluğu · Md. IX: Due Regard prensibi · Md. XI: Açıklık yükümlülüğü</div>
+          </div>
+          <span class="legal-treaty-status aktif">TÜRKİYE: TARAF</span>
+        </div>
+        <div class="legal-treaty-row">
+          <span class="legal-treaty-code">Kurtarma Sözl. · 1968</span>
+          <div class="legal-treaty-info">
+            <div class="legal-treaty-name">BM Astronot Kurtarma ve İade Antlaşması</div>
+            <div class="legal-treaty-desc">Uzay personelinin kurtarılması ve uzay nesnelerinin iadesiyle ilgili yükümlülükler.</div>
+          </div>
+          <span class="legal-treaty-status aktif">TÜRKİYE: TARAF</span>
+        </div>
+        <div class="legal-treaty-row">
+          <span class="legal-treaty-code">Sorumluluk Sözl. · 1972</span>
+          <div class="legal-treaty-info">
+            <div class="legal-treaty-name">BM Uzay Nesneleri Sorumluluk Sözleşmesi</div>
+            <div class="legal-treaty-desc">Md. II: Yüzey zararı için mutlak sorumluluk · Md. III: Uzayda hata sorumluluğu · Md. VII: Tazminat talep hakkı</div>
+          </div>
+          <span class="legal-treaty-status aktif">TÜRKİYE: TARAF</span>
+        </div>
+        <div class="legal-treaty-row">
+          <span class="legal-treaty-code">Tescil Sözl. · 1976</span>
+          <div class="legal-treaty-info">
+            <div class="legal-treaty-name">BM Uzay Nesneleri Tescil Sözleşmesi</div>
+            <div class="legal-treaty-desc">Md. II: Zorunlu tescil bildirimi · Md. IV: BM Sekretaryası'na bildirim · Tespit edilen tescilsiz cisim bu madde kapsamında doğrudan ihlal teşkil etmektedir.</div>
+          </div>
+          <span class="legal-treaty-status aktif">TÜRKİYE: TARAF</span>
+        </div>
+        <div class="legal-treaty-row">
+          <span class="legal-treaty-code">ITU RR · 2020</span>
+          <div class="legal-treaty-info">
+            <div class="legal-treaty-name">ITU Radyo Düzenlemeleri (Radio Regulations)</div>
+            <div class="legal-treaty-desc">No. 15.1: Zararlı karışma yasağı · No. 11.41: Frekans koordinasyon yükümlülüğü · Md. 44/45: Müdahale çözüm prosedürü · Appendix 30B: GEO koordinasyonu</div>
+          </div>
+          <span class="legal-treaty-status aktif">BAĞLAYICI</span>
+        </div>
+        <div class="legal-treaty-row">
+          <span class="legal-treaty-code">IADC · 2007</span>
+          <div class="legal-treaty-info">
+            <div class="legal-treaty-name">Uzay Enkazı Azaltma Kılavuzu (Space Debris Mitigation Guidelines)</div>
+            <div class="legal-treaty-desc">GEO koridoru temizliği, 25 yıllık de-orbit kuralı ve post-mission disposal yükümlülükleri.</div>
+          </div>
+          <span class="legal-treaty-status süreç">GÖNÜLLÜ</span>
+        </div>
+        <div class="legal-treaty-row">
+          <span class="legal-treaty-code">TUA/SİBER · 2024</span>
+          <div class="legal-treaty-info">
+            <div class="legal-treaty-name">TUA Uzay Sistemleri Siber Egemenlik Protokolü</div>
+            <div class="legal-treaty-desc">TUA/SİBER/2024-7: Uydu TT&C güvenliği, Ed25519 imzalama zorunluluğu, CCSDS paket bütünlük standartları ve siber olay müdahale prosedürleri.</div>
+          </div>
+          <span class="legal-treaty-status aktif">ULUSAL MEVZUAT</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zaman Çizelgesi -->
+    <div class="legal-timeline">
+      <div class="legal-tl-hdr">
+        <span>Hukuki Süreç Zaman Çizelgesi</span>
+        <span style="font-size:8px;color:var(--text3);">Aktif Vakalar</span>
+      </div>
+      <div class="legal-tl-body">
+        <div class="legal-tl-item">
+          <div class="legal-tl-marker red">!</div>
+          <div class="legal-tl-info">
+            <div class="legal-tl-date">2026-03-22 · BUGÜN</div>
+            <div class="legal-tl-title">Ka-Band Müdahalesi — ITU Acil Bildirimi</div>
+            <div class="legal-tl-desc">ITU RR No. 15.1 kapsamında acil şikayet bildirimi Radyo Bürosu'na iletildi. IFCOM süreci başlatıldı. Koordinat kanıtları SHA-256 ile mühürlendi.</div>
+          </div>
+        </div>
+        <div class="legal-tl-item">
+          <div class="legal-tl-marker red">!</div>
+          <div class="legal-tl-info">
+            <div class="legal-tl-date">2026-03-20</div>
+            <div class="legal-tl-title">Tescilsiz Cisim Tespiti — UNOOSA Bildirimi + 72h Nota</div>
+            <div class="legal-tl-desc">OST Md. II ve Tescil Sözleşmesi Md. II kapsamında UNOOSA'ya bildirim yapıldı. İlgili devlete 72 saatlik manevra notası gönderildi.</div>
+          </div>
+        </div>
+        <div class="legal-tl-item">
+          <div class="legal-tl-marker amber">~</div>
+          <div class="legal-tl-info">
+            <div class="legal-tl-date">2026-03-18</div>
+            <div class="legal-tl-title">TT&C Spoofing Tespiti — Siber Soruşturma Başlatıldı</div>
+            <div class="legal-tl-desc">TUA/SİBER/2024-7 kapsamında siber olay müdahale prosedürü aktive edildi. CERT-TR ve uluslararası CERT ağlarına bildirim gönderildi.</div>
+          </div>
+        </div>
+        <div class="legal-tl-item">
+          <div class="legal-tl-marker cyan">→</div>
+          <div class="legal-tl-info">
+            <div class="legal-tl-date">2026-03-23 (YARARIN)</div>
+            <div class="legal-tl-title">ITU IFCOM İlk Yanıt Bekleniyor</div>
+            <div class="legal-tl-desc">Ka-Band müdahalesi şikayeti için ITU'nun ilk değerlendirme yanıtı beklenmektedir. 30 günlük resmi yanıt süresi işlemektedir.</div>
+          </div>
+        </div>
+        <div class="legal-tl-item">
+          <div class="legal-tl-marker cyan">→</div>
+          <div class="legal-tl-info">
+            <div class="legal-tl-date">2026-03-23 17:42 UTC (72h)</div>
+            <div class="legal-tl-title">Tescilsiz Cisim — 72 Saatlik Nota Süre Sonu</div>
+            <div class="legal-tl-desc">Diplomatik nota süresi dolmaktadır. Manevra gerçekleşmezse BM Güvenlik Konseyi'ne sevk prosedürü başlatılacaktır.</div>
+          </div>
+        </div>
+        <div class="legal-tl-item">
+          <div class="legal-tl-marker green">✓</div>
+          <div class="legal-tl-info">
+            <div class="legal-tl-date">2026-02-14</div>
+            <div class="legal-tl-title">TÜRKSAT 5B Frekans Koordinasyonu Yenilendi</div>
+            <div class="legal-tl-desc">Ku-Band koordinasyonu 7 yıllık periyodik yenileme başarıyla tamamlandı. 2033 yılına kadar geçerli.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DECLARATION MODAL -->
+<div class="modal-bg" id="declModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">[ X ]</button>
+    <div class="modal-hdr">
+      <div class="modal-emblem">
+        <svg width="30" height="30" viewBox="0 0 30 30">
+          <polygon points="15,2 27,8.5 27,21.5 15,28 3,21.5 3,8.5" stroke="#00e5ff" stroke-width="1.5" fill="rgba(0,229,255,0.08)"/>
+          <circle cx="15" cy="15" r="4" fill="#00e5ff" opacity="0.9"/>
+        </svg>
+      </div>
+      <div>
+        <div class="modal-org-name">Türkiye Uzay Ajansı · GÖK-İZ Sistemi</div>
+        <div class="modal-org-sub">Gök Vatan Hak İzleme ve Yörünge Analiz Birimi · TUA/GÖK-İZ/2026</div>
+      </div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ================================================
+// TLE VERİLERİ
+// ================================================
+const SATS = {
+  ts6a: {
+    name: 'TÜRKSAT 6A', norad: '60232', slot: '42.0°E',
+    tle1: '1 60232U 24137A   26086.50000000  .00000000  00000-0  00000-0 0  9990',
+    tle2: '2 60232  00.0411 042.0000 0001234 000.0000 360.0000  1.00273791  7300',
+  },
+  ts5b: {
+    name: 'TÜRKSAT 5B', norad: '50203', slot: '50.0°E',
+    tle1: '1 50203U 21112A   26086.50000000  .00000000  00000-0  00000-0 0  9994',
+    tle2: '2 50203  00.0296 050.0000 0000891 000.0000 360.0000  1.00273791 15840',
+  }
+};
+
+function propagate(tle1, tle2, date) {
+  try {
+    const satrec = satellite.twoline2satrec(tle1, tle2);
+    const pv = satellite.propagate(satrec, date);
+    if (!pv.position) return null;
+    const gmst = satellite.gstime(date);
+    const geo = satellite.eciToGeodetic(pv.position, gmst);
+    const lat = satellite.degreesLat(geo.latitude);
+    const lon = satellite.degreesLong(geo.longitude);
+    const alt = geo.height;
+    const vx = pv.velocity.x, vy = pv.velocity.y, vz = pv.velocity.z;
+    const vel = Math.sqrt(vx*vx + vy*vy + vz*vz);
+    return { lat, lon, alt, vel, incl: (satrec.inclo * 180 / Math.PI), ecc: satrec.ecco, satrec };
+  } catch(e) { return null; }
+}
+
+let hashEntries = [];
+let currentScenario = null;
+function fmt(n, d=4) { return n.toFixed(d); }
+function fmtSigned(n, d=4) { return (n >= 0 ? '+' : '') + n.toFixed(d); }
+
+// ================================================
+// TAB SWITCHING
+// ================================================
+function switchTab(id, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+// ================================================
+// CLOCK & TELEMETRY
+// ================================================
+function updateAll() {
+  const now = new Date();
+  const hh = String(now.getUTCHours()).padStart(2,'0');
+  const mm = String(now.getUTCMinutes()).padStart(2,'0');
+  const ss = String(now.getUTCSeconds()).padStart(2,'0');
+  document.getElementById('utcClock').textContent = `${hh}:${mm}:${ss}`;
+
+  const doy = Math.floor((now - new Date(now.getUTCFullYear(),0,0)) / 86400000);
+  const frac = (now.getUTCHours()*3600 + now.getUTCMinutes()*60 + now.getUTCSeconds()) / 86400;
+  document.getElementById('navEpoch').textContent =
+    `Epoch: ${now.getUTCFullYear()}-${String(doy).padStart(3,'0')}.${fmt(frac,5).split('.')[1]} · SGP4/SDP4 Motor Aktif · ${now.toISOString().split('T')[0]}`;
+
+  const diplDateEl = document.getElementById('diplDate');
+  if (diplDateEl) diplDateEl.textContent = now.toISOString().split('T')[0];
+
+  const ts6a = propagate(SATS.ts6a.tle1, SATS.ts6a.tle2, now);
+  if (ts6a) {
+    document.getElementById('ts6a-lat').innerHTML = `${fmtSigned(ts6a.lat,6)}<span class="coord-unit">°</span>`;
+    document.getElementById('ts6a-lon').innerHTML = `${fmtSigned(ts6a.lon,6)}<span class="coord-unit">°</span>`;
+    document.getElementById('ts6a-alt').innerHTML = `${fmt(ts6a.alt,3)}<span class="coord-unit"> km</span>`;
+    document.getElementById('ts6a-vel').innerHTML = `${fmt(ts6a.vel,4)}<span class="coord-unit"> km/s</span>`;
+    document.getElementById('ts6a-incl').textContent = fmt(ts6a.incl,4) + '°';
+    document.getElementById('ts6a-ecc').textContent = ts6a.ecc.toExponential(4);
+    document.getElementById('ts6a-age').textContent = now.toISOString().split('T')[1].split('.')[0] + 'Z';
+    window._ts6a = ts6a;
+  }
+  const ts5b = propagate(SATS.ts5b.tle1, SATS.ts5b.tle2, now);
+  if (ts5b) {
+    document.getElementById('ts5b-lat').innerHTML = `${fmtSigned(ts5b.lat,6)}<span class="coord-unit">°</span>`;
+    document.getElementById('ts5b-lon').innerHTML = `${fmtSigned(ts5b.lon,6)}<span class="coord-unit">°</span>`;
+    document.getElementById('ts5b-alt').innerHTML = `${fmt(ts5b.alt,3)}<span class="coord-unit"> km</span>`;
+    document.getElementById('ts5b-vel').innerHTML = `${fmt(ts5b.vel,4)}<span class="coord-unit"> km/s</span>`;
+    document.getElementById('ts5b-incl').textContent = fmt(ts5b.incl,4) + '°';
+    document.getElementById('ts5b-ecc').textContent = ts5b.ecc.toExponential(4);
+    document.getElementById('ts5b-age').textContent = now.toISOString().split('T')[1].split('.')[0] + 'Z';
+    window._ts5b = ts5b;
+  }
+  if (currentScenario) redrawCanvas(currentScenario, now);
+}
+
+setInterval(updateAll, 1000);
+updateAll();
+
+// ================================================
+// SHA-256
+// ================================================
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ================================================
+// SCENARIOS
+// ================================================
+const SCENARIOS = {
+  A: {
+    type: 'amber', label: 'SİBER MÜDAHALE ANALİZİ',
+    title: 'Frekans Spektrumunda Zararlı Karışma Tespiti',
+    body: 'Ka-Band downlink kanalında ölçülen Interference-to-Noise (I/N) oranı ITU limiti olan −12.2 dB eşiğini +14.7 dB aşmaktadır. Alınan güç anormalliği %15 üst bandında seyretmekte; sinyal kaynağı TDOA analizi ile 38.2°E ±0.4° olarak lokalize edilmiştir.',
+    law: 'ITU Radyo Düzenlemeleri Madde 15.1 (RR No. 15.1) — Zararlı karışma (Harmful Interference) tespiti. IFCOM şikayet dosyası: TR-2026-03-GÖKİZ. Frekans koordinasyon yükümlülüğü: ITU RR No. 11.41.',
+    canvasType: 'spectrum',
+    tableData: [
+      ['Etkilenen Frekans','19.700 GHz (Ka-Band DL)','amber'],
+      ['Ölçülen I/N Oranı','+14.7 dB','red'],
+      ['ITU I/N Limiti','−12.2 dB','green'],
+      ['Güç Artışı (∆)','%15.3','amber'],
+      ['Sinyal Kaynağı (TDOA)','38.2°E ±0.4°','red'],
+      ['Etkilenen BW','29.4 MHz','amber'],
+      ['Kesinti Süresi','00:11:37','red'],
+      ['Şikayet Ref.','TR-2026-03-GÖKİZ','cyan'],
+    ]
+  },
+  B: {
+    type: 'red', label: 'YÖRÜNGE SLOT İHLALİ',
+    title: 'TÜRKSAT 6A Keep-out Zone İhlali — 42°E',
+    body: 'TÜRKSAT 6A\'nın 42°E jeostatik yörünge pozisyonu koruma koridoru (±0.1° = ≈73.8 km) içine NORAD kataloğunda tescilsiz bir cismin girdiği tespit edilmiştir. Anlık yaklaşma mesafesi 91.4 km; 72 saat içinde ±50 km eşiğini ihlal edeceği öngörülmektedir.',
+    law: 'BM Dış Uzay Antlaşması (OST) Madde II — Mülkiyet iddiası yasağı ve orbital slot koruma prensibi. OST Madde IX — Due Regard prensibi ihlali. BM Uzay Nesneleri Tescil Sözleşmesi Madde II — Tescilsiz cisim.',
+    canvasType: 'orbital',
+    tableData: [
+      ['İhlalci Cisim Konumu','42.0914°E · 35,791 km','red'],
+      ['TÜRKSAT 6A Konumu','42.0000°E · 35,786 km','cyan'],
+      ['Yaklaşma Mesafesi','91.4 km','red'],
+      ['Keep-out Zone','±0.1° (≈73.8 km)','amber'],
+      ['NORAD Tescil Durumu','TESCİLSİZ','red'],
+      ['Çarpışma Olasılığı (72h)','2.3 × 10⁻³','red'],
+      ['Due Regard İhlali','ONAYLANDI','red'],
+      ['BM Bildirim Durumu','HAZIRLANIYOR','amber'],
+    ]
+  },
+  C: {
+    type: 'cyan', label: 'SİBER SIZMA TESPİTİ (SPOOFING)',
+    title: 'Telemetri Paket İmza Uyumsuzluğu — Siber Egemenlik İhlali',
+    body: 'TÜRKSAT 6A uplink TT&C kanalında alınan 7 telemetri paketinden 3 tanesinde Ed25519 dijital imzası doğrulanamamıştır. Paket zaman damgalarında ±340 ms sapma gözlemlenmekte; CCSDS paket yapısında 4 baytlık anomali saptanmaktadır. GPS/GLO spoofing vektörü olasılığı %94.2.',
+    law: 'Uzay Sistemleri Siber Egemenlik Protokolü — TUA/SİBER/2024-7. ITU-R S.1711 Uydu Siber Güvenlik Standartları. CCSDS SDLP 131.0-B-3 Güvenlik Uzantısı Madde 5.',
+    canvasType: 'packets',
+    tableData: [
+      ['Toplam Paket Sayısı','7 / oturum','cyan'],
+      ['İmza Hatası','3 paket (%42.8)','red'],
+      ['Zaman Sapması','±340 ms','amber'],
+      ['CCSDS Anomali','4 bayt · Başlık bölgesi','red'],
+      ['Spoofing Olasılığı','%94.2 (YÜKSEK)','red'],
+      ['Kaynak IP Vektörü','Bilinmeyen / Maskelenmiş','amber'],
+      ['Savunma Protokolü','AKTİF · TUA/SİBER-7','cyan'],
+      ['Karantina Durumu','UYGULANMAKTA','amber'],
+    ]
+  }
+};
+
+function triggerScenario(id, btn) {
+  currentScenario = id;
+  const s = SCENARIOS[id];
+  document.querySelectorAll('.btn-scenario').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('defaultCenter').style.display = 'none';
+  document.getElementById('analysisOutput').style.display = 'block';
+  const badge = document.getElementById('centerBadge');
+  badge.textContent = 'İHLAL TESPİT EDİLDİ';
+  badge.style.color = s.type === 'red' ? 'var(--red)' : s.type === 'amber' ? 'var(--amber)' : 'var(--cyan)';
+  badge.style.borderColor = badge.style.color;
+  const ab = document.getElementById('alertBox');
+  ab.className = `alert-box ${s.type}`;
+  ab.innerHTML = `
+    <div class="alert-type"><span>■</span> ${s.label} · ${new Date().toISOString()}</div>
+    <div class="alert-title">${s.title}</div>
+    <div class="alert-body">${s.body}</div>
+    <div class="alert-law">▶️ ${s.law}</div>`;
+  document.getElementById('canvasTitle').textContent = s.canvasType.toUpperCase() + ' ANALİZİ';
+  redrawCanvas(id, new Date());
+  const td = document.getElementById('dataTables');
+  let tHtml = `<table class="data-tbl" style="margin-bottom:16px;"><thead><tr><th>Parametre</th><th>Değer</th></tr></thead><tbody>`;
+  s.tableData.forEach(([k, v, cls]) => { tHtml += `<tr><td>${k}</td><td class="${cls || ''}-hi">${v}</td></tr>`; });
+  tHtml += `</tbody></table>`;
+  td.innerHTML = tHtml;
+  createHashEntry(id, s);
+}
+
+function redrawCanvas(id, now) {
+  const canvas = document.getElementById('mainCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const s = SCENARIOS[id];
+  ctx.fillStyle = '#020b0f';
+  ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle = 'rgba(0,229,255,0.04)'; ctx.lineWidth = 1;
+  for(let x=0;x<W;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  if (s.canvasType === 'spectrum') drawSpectrum(ctx,W,H,now);
+  else if (s.canvasType === 'orbital') drawOrbital(ctx,W,H,now);
+  else if (s.canvasType === 'packets') drawPackets(ctx,W,H,now);
+}
+
+function drawSpectrum(ctx,W,H,now) {
+  const freqs = [17.7,18.0,18.5,19.0,19.5,19.7,20.0,20.5,21.0,21.2];
+  const noise = [0.08,0.09,0.10,0.11,0.13,0.94,0.17,0.11,0.10,0.08];
+  const bw = (W-60)/freqs.length;
+  const jitter = 0.05 * Math.sin(now.getTime()/400);
+  const thresh = H - (0.25*(H-50)) - 15;
+  ctx.strokeStyle='rgba(255,171,0,0.6)';ctx.lineWidth=1;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(30,thresh);ctx.lineTo(W-10,thresh);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#ffab00';ctx.font='8px Share Tech Mono,monospace';ctx.fillText('ITU LIMIT',W-75,thresh-4);
+  freqs.forEach((f,i) => {
+    const barH = (noise[i] + (i===5?jitter:0)) * (H-50);
+    const x=30+i*bw; const y=H-barH-15;
+    const isViol = noise[i] > 0.25;
+    ctx.fillStyle = isViol ? 'rgba(255,60,90,0.75)' : 'rgba(0,229,255,0.4)';
+    ctx.fillRect(x+3,y,bw-6,barH);
+    if(isViol){ctx.strokeStyle='#ff3c5a';ctx.lineWidth=1.5;ctx.strokeRect(x+3,y,bw-6,barH);}
+    ctx.fillStyle=isViol?'#ff8a95':'#5a9aaa';ctx.font='7.5px Share Tech Mono,monospace';ctx.fillText(f+'G',x+2,H-4);
+  });
+  const vx=30+5*bw+bw/2;
+  ctx.fillStyle='rgba(255,60,90,0.12)';ctx.fillRect(vx-28,8,88,30);
+  ctx.strokeStyle='rgba(255,60,90,0.5)';ctx.strokeRect(vx-28,8,88,30);
+  ctx.fillStyle='#ff8a95';ctx.font='8px Share Tech Mono,monospace';ctx.fillText('HARMFUL INT.',vx-22,24);ctx.fillText('+14.7 dB',vx-14,36);
+}
+
+function drawOrbital(ctx,W,H,now) {
+  const ts6a = window._ts6a;
+  const cx=W/2, cy=H*1.4;
+  const rx=W*0.52, ry=H*1.2;
+  ctx.strokeStyle='rgba(0,229,255,0.15)';ctx.lineWidth=1;ctx.setLineDash([4,5]);
+  ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,Math.PI*1.12,Math.PI*1.88);ctx.stroke();ctx.setLineDash([]);
+  ctx.font='8px Share Tech Mono,monospace';
+  const slots=[38,40,42,44,46,48,50];
+  slots.forEach((d,i) => {
+    const x=60+i*(W-100)/6;
+    ctx.fillStyle='#2d5a68';ctx.fillText(`${d}°E`,x-8,H-6);
+    ctx.strokeStyle='rgba(0,229,255,0.08)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x,H-18);ctx.lineTo(x,0);ctx.stroke();
+  });
+  const x42=60+2*(W-100)/6;
+  ctx.fillStyle='rgba(0,229,255,0.08)';ctx.fillRect(x42-35,0,70,H-24);
+  ctx.strokeStyle='rgba(0,229,255,0.25)';ctx.strokeRect(x42-35,0,70,H-24);
+  ctx.fillStyle='rgba(0,229,255,0.5)';ctx.font='8px Share Tech Mono,monospace';ctx.fillText('KO ZONE',x42-22,16);ctx.fillText('±0.1°',x42-14,27);
+  const x50=60+6*(W-100)/6;
+  ctx.fillStyle='rgba(0,255,157,0.06)';ctx.fillRect(x50-30,0,60,H-24);
+  ctx.fillStyle='#00e5ff';ctx.beginPath();ctx.arc(x42,H/2+20,8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(0,229,255,0.15)';ctx.beginPath();ctx.arc(x42,H/2+20,22,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#00e5ff';ctx.font='9px Share Tech Mono,monospace';ctx.fillText('TS-6A',x42+13,H/2+15);
+  if(ts6a){ctx.fillStyle='#5a9aaa';ctx.font='7.5px Share Tech Mono,monospace';ctx.fillText(fmt(ts6a.lon,4)+'°E',x42+13,H/2+26);}
+  const osc = 72 + 12*Math.sin(now.getTime()/1200);
+  const xi = x42 + osc;
+  ctx.fillStyle='#ff3c5a';ctx.beginPath();ctx.arc(xi,H/2,7,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(255,60,90,0.6)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xi,H/2,18,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#ff8a95';ctx.font='9px Share Tech Mono,monospace';ctx.fillText('OBJ-???',xi+10,H/2-4);
+  ctx.fillStyle='#ff3c5a';ctx.font='7.5px Share Tech Mono,monospace';ctx.fillText('TESCİLSİZ',xi+10,H/2+7);
+  ctx.strokeStyle='rgba(255,171,0,0.7)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(x42+12,H/2+12);ctx.lineTo(xi-10,H/2-2);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#ffab00';ctx.font='9px Share Tech Mono,monospace';ctx.fillText(`${fmt(osc,1)} km`,x42+osc/2-15,H/2-20);
+  ctx.fillStyle='#00ff9d';ctx.beginPath();ctx.arc(x50,H/2+15,6,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#00ff9d';ctx.font='8px Share Tech Mono,monospace';ctx.fillText('TS-5B',x50+10,H/2+10);
+  ctx.fillStyle='rgba(255,60,90,0.12)';ctx.fillRect(W-150,4,146,24);
+  ctx.strokeStyle='rgba(255,60,90,0.5)';ctx.strokeRect(W-150,4,146,24);
+  ctx.fillStyle='#ff8a95';ctx.font='9px Share Tech Mono,monospace';ctx.fillText('⚠ OST Md.2 İHLALİ',W-142,20);
+}
+
+function drawPackets(ctx,W,H,now) {
+  const t = now.getTime();
+  const packets=[{ok:true,id:'PKT-001'},{ok:true,id:'PKT-002'},{ok:false,id:'PKT-003'},{ok:true,id:'PKT-004'},{ok:false,id:'PKT-005'},{ok:true,id:'PKT-006'},{ok:false,id:'PKT-007'}];
+  const step=(W-60)/packets.length;
+  ctx.font='8.5px Share Tech Mono,monospace';
+  packets.forEach((p,i) => {
+    const x=30+i*step;
+    const blink=!p.ok && Math.sin(t/300+i)>0;
+    const col=p.ok?'#00e5ff':(blink?'#ff3c5a':'#8b0000');
+    const bg=p.ok?'rgba(0,229,255,0.08)':'rgba(255,60,90,0.15)';
+    ctx.fillStyle=bg;ctx.fillRect(x,30,step-8,H-60);
+    ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.strokeRect(x,30,step-8,H-60);
+    ctx.fillStyle=col;ctx.fillRect(x+8,45,step-24,20);
+    ctx.fillStyle=col;ctx.fillText(p.ok?'✓':'✗',x+step/2-6,72);
+    ctx.fillText(p.id,x+4,H-40);
+    if(!p.ok){ctx.fillStyle='#ff8a95';ctx.font='7px Share Tech Mono,monospace';ctx.fillText('İMZA',x+4,H-28);ctx.fillText('HATASI',x+4,H-18);ctx.font='8.5px Share Tech Mono,monospace';}
+    if(i<packets.length-1){ctx.strokeStyle=p.ok?'rgba(0,229,255,0.3)':'rgba(255,60,90,0.5)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+step-8,H/2);ctx.lineTo(x+step,H/2);ctx.stroke();}
+  });
+  ctx.fillStyle='rgba(0,229,255,0.08)';ctx.fillRect(10,5,130,18);
+  ctx.fillStyle='#00e5ff';ctx.font='8px Share Tech Mono,monospace';ctx.fillText('CCSDS PAKET AKIŞI — UPLINK TT&C',14,16);
+  ctx.fillStyle='rgba(255,60,90,0.08)';ctx.fillRect(W-145,5,140,18);
+  ctx.fillStyle='#ff8a95';ctx.fillText('3/7 PAKET HATALÎ (%42.8)',W-138,16);
+}
+
+// ================================================
+// HASH ENTRY
+// ================================================
+async function createHashEntry(id, s) {
+  const ts6a = window._ts6a;
+  const ts5b = window._ts5b;
+  const now = new Date();
+  const payload = JSON.stringify({scenario:id,timestamp:now.toISOString(),ts6a:ts6a?{lat:ts6a.lat,lon:ts6a.lon,alt:ts6a.alt}:null,ts5b:ts5b?{lat:ts5b.lat,lon:ts5b.lon,alt:ts5b.alt}:null,event:s.label});
+  const hash = await sha256(payload);
+  const entry = {id,hash,ts:now.toISOString(),payload,ts6a,ts5b,label:s.label,type:s.type};
+  hashEntries.unshift(entry);
+  document.getElementById('hdrHashCount').textContent = String(hashEntries.length).padStart(2,'0');
+  renderHashLog();
+}
+
+function renderHashLog() {
+  const panel = document.getElementById('hashLogPanel');
+  if (!hashEntries.length) { panel.innerHTML = `<div class="hash-empty">Kanıt kaydı bekleniyor...</div>`; return; }
+  panel.innerHTML = `<div class="hash-log">${hashEntries.map(e=>`
+    <div class="hash-entry type-${e.id.toLowerCase()}">
+      <div class="hash-hdr"><span class="hash-ev-type">${e.label}</span><span class="hash-ts">${e.ts.split('T')[1].split('.')[0]}Z</span></div>
+      <div class="hash-coords">
+        ${e.ts6a?`TS-6A: LAT ${fmt(e.ts6a.lat,4)}° · LON ${fmt(e.ts6a.lon,4)}° · ALT ${fmt(e.ts6a.alt,1)}km`:''}
+        ${e.ts5b?`<br>TS-5B: LAT ${fmt(e.ts5b.lat,4)}° · LON ${fmt(e.ts5b.lon,4)}° · ALT ${fmt(e.ts5b.alt,1)}km`:''}
+      </div>
+      <div class="hash-val"><strong>SHA-256:</strong> ${e.hash}</div>
+      <div class="hash-seal">✓ DOĞRULANDI · DEĞİŞTİRİLEMEZ KAYIT · ${e.ts.split('T')[0]}</div>
+    </div>`).join('')}</div>`;
+}
+
+// ================================================
+// DECLARATION MODAL
+// ================================================
+function showDeclaration() {
+  const now = new Date();
+  const ts6a = window._ts6a;
+  const ts5b = window._ts5b;
+  const docId = `TUA-GÖKİZ-${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}-${String(now.getUTCDate()).padStart(2,'0')}`;
+  const latestHash = hashEntries.length > 0 ? hashEntries[0].hash : '(Henüz senaryo çalıştırılmadı)';
+  let activeScenarioText = '';
+  if (currentScenario) {
+    const s = SCENARIOS[currentScenario];
+    activeScenarioText = `<div class="modal-law-ref">▶️ Aktif İhlal Senaryosu: ${s.label}<br>▶️ Hukuki Dayanak: ${s.law}</div>`;
+  }
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-doc-title">Uluslararası Uzay Hukuku Bildirgesi</div>
+    <div class="modal-meta-grid">
+      <div class="meta-row"><span class="meta-k">Belge No:</span><span class="meta-v">${docId}</span></div>
+      <div class="meta-row"><span class="meta-k">Tarih (UTC):</span><span class="meta-v">${now.toISOString().split('.')[0]}Z</span></div>
+      <div class="meta-row"><span class="meta-k">Hazırlayan Sistem:</span><span class="meta-v">GÖK-İZ v3.1 · SGP4 Motor</span></div>
+      <div class="meta-row"><span class="meta-k">Yetki:</span><span class="meta-v">TUA/GÖKİZ/2026/03</span></div>
+      <div class="meta-row"><span class="meta-k">Gizlilik Derecesi:</span><span class="meta-v">HİZMETE ÖZEL</span></div>
+      <div class="meta-row"><span class="meta-k">Kayıtlı Kanıt Sayısı:</span><span class="meta-v">${hashEntries.length} adet SHA-256</span></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-sec-title">I. Bildirgenin Amacı ve Kapsamı</div>
+      <p class="modal-p">İşbu bildirge, Türkiye Uzay Ajansı bünyesindeki GÖK-İZ (Gök Vatan Hak İzleme ve Yörünge Analiz Sistemi) tarafından satellite.js SGP4/SDP4 yörünge propagasyon motoru vasıtasıyla gerçek zamanlı olarak hesaplanan TÜRKSAT uydu koordinatları esas alınarak, tespit edilen uzay hukuku ihlallerini kayıt altına almak ve uluslararası hukuki başvuru süreçlerini başlatmak amacıyla düzenlenmiştir.</p>
+      <p class="modal-p">Sistem, anlık enlem-boylam-irtifa değerlerini matematiksel kesinlikle hesaplamakta; her anomali tespitini SHA-256 kriptografik imzasıyla mühürleyerek değiştirilemez kanıt zinciri oluşturmaktadır.</p>
+    </div>
+    <div class="modal-section">
+      <div class="modal-sec-title">II. Anlık Yörünge Verileri (SGP4 Hesaplaması)</div>
+      <div class="modal-data-block">
+        <div><span class="k">TÜRKSAT 6A (NORAD 60232)</span></div>
+        <div><span class="k">— Enlem (LAT):</span><span class="v">${ts6a?fmt(ts6a.lat,6)+'°':'Hesaplanıyor...'}</span></div>
+        <div><span class="k">— Boylam (LON):</span><span class="v">${ts6a?fmt(ts6a.lon,6)+'°':'Hesaplanıyor...'}</span></div>
+        <div><span class="k">— İrtifa (ALT):</span><span class="v">${ts6a?fmt(ts6a.alt,3)+' km':'Hesaplanıyor...'}</span></div>
+        <div><span class="k">— Hız (VEL):</span><span class="v">${ts6a?fmt(ts6a.vel,4)+' km/s':'Hesaplanıyor...'}</span></div>
+        <div><span class="k">— GEO Slot:</span><span class="v">42.0°E (ITU Tahsisi)</span></div>
+        <br>
+        <div><span class="k">TÜRKSAT 5B (NORAD 50203)</span></div>
+        <div><span class="k">— Enlem (LAT):</span><span class="v">${ts5b?fmt(ts5b.lat,6)+'°':'Hesaplanıyor...'}</span></div>
+        <div><span class="k">— Boylam (LON):</span><span class="v">${ts5b?fmt(ts5b.lon,6)+'°':'Hesaplanıyor...'}</span></div>
+        <div><span class="k">— İrtifa (ALT):</span><span class="v">${ts5b?fmt(ts5b.alt,3)+' km':'Hesaplanıyor...'}</span></div>
+        <div><span class="k">— GEO Slot:</span><span class="v">50.0°E (ITU Tahsisi)</span></div>
+        <br>
+        <div><span class="k">Hesaplama Zamanı (UTC):</span><span class="v">${now.toISOString()}</span></div>
+        <div><span class="k">Propagasyon Metodu:</span><span class="v">SGP4 (AFSPC 4) — satellite.js v4.0</span></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-sec-title">III. Tespit Edilen İhlaller ve Hukuki Dayanak</div>
+      ${activeScenarioText||'<p class="modal-p">Bu bildirge oluşturulurken aktif senaryo bulunmamaktadır. Sol panelden senaryo seçildikten sonra bildirge ihlal detaylarını içerecektir.</p>'}
+      <div class="modal-law-ref">▶️ BM Dış Uzay Antlaşması (OST) 1967 — Madde II, IX<br>▶️ ITU Radyo Düzenlemeleri (RR) — Madde 15, No. 11.41<br>▶️ BM Uzay Nesneleri Tescil Sözleşmesi 1976 — Madde II, IV</div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-sec-title">IV. Kriptografik Kanıt Zinciri</div>
+      <p class="modal-p">Aşağıdaki SHA-256 hash değeri, belge oluşturulma anındaki tüm yörünge verilerini, zaman damgasını ve tespit edilen anomali detaylarını kapsayan payload'ın Web Crypto API (SubtleCrypto) kullanılarak gerçek zamanlı olarak hesaplanmış kriptografik özetidir.</p>
+      <div class="modal-data-block">
+        <div><span class="k">En Son Kanıt SHA-256:</span></div>
+        <div style="color:#00ff9d;word-break:break-all;font-size:9px;margin-top:4px;">${latestHash}</div>
+        <div style="margin-top:6px;"><span class="k">Toplam Kanıt Sayısı:</span><span class="v">${hashEntries.length}</span></div>
+        <div><span class="k">İmza Algoritması:</span><span class="v">SHA-256 · Web Crypto API</span></div>
+        <div><span class="k">Zaman Damgası:</span><span class="v">${now.toISOString()}</span></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-sec-title">V. Talep ve Önerilen Eylemler</div>
+      <p class="modal-p">1. Tespit edilen ihlallere ilişkin tüm teknik verilerin SHA-256 kanıt zincirleriyle birlikte <strong>BM Dış Uzay İşleri Ofisi (UNOOSA)</strong>'na iletilmesi.</p>
+      <p class="modal-p">2. <strong>ITU Radyo Bürosu</strong>'na IFCOM şikayet dosyası açılması ve frekans koordinasyon ihlalinin kayıt altına alınması.</p>
+      <p class="modal-p">3. Tescilsiz cismin 42°E Keep-out Zone dışına manevra etmesi için diplomatik nota yoluyla <strong>72 saatlik süre</strong> tanınması.</p>
+      <p class="modal-p">4. Siber sızma tespiti kapsamında <strong>CCSDS güvenlik protokollerinin</strong> yükseltilmesi ve olayın uluslararası CERT ağlarına bildirilmesi.</p>
+    </div>
+    <div class="modal-sigs">
+      <div class="sig-block"><div class="sig-line"></div><div class="sig-name">GÖK-İZ Sistem Sorumlusu</div><div class="sig-title">Türkiye Uzay Ajansı · Yörünge Analiz Birimi</div></div>
+      <div class="sig-block"><div class="sig-line"></div><div class="sig-name">TUA Hukuk Koordinatörü</div><div class="sig-title">Uzay Hukuku Danışmanlık Servisi</div></div>
+    </div>
+    <div class="modal-hash-row">
+      <span class="modal-hash-label">🔒 SHA-256 DOĞRULANDI ·</span>
+      <span class="modal-hash-val">${latestHash}</span>
+    </div>`;
+  document.getElementById('declModal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('declModal').classList.remove('open'); }
+document.getElementById('declModal').addEventListener('click', function(e){ if(e.target===this)closeModal(); });
+</script>
+</body>
+</html>
